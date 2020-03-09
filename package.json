@@ -1,0 +1,56 @@
+{
+  "name": "react-electron",
+  "version": "1.0.0",
+  "description": "",
+  "author": "Nicole Sattler",
+  "license": "MIT",
+  "main": "main.js",
+  "homepage": "./",
+  "scripts": {
+    "react-start": "parcel ./src/index.html --no-cache",
+    "react-build": "parcel build ./src/index.html --public-url ./",
+    "electron-start": "cross-env NODE_ENV=DEVELOP electron .",
+    "electron-build": "electron-packager . --out=win --overwrite",
+    "build": "electron-builder",
+    "dev": "concurrently \"npm run react-start\" \"npm run electron-start\"",
+    "pack": "electron-builder --dir",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "build": {
+    "appId": "yt-mp3",
+    "directories": {
+      "output": "wintest"
+    },
+    "files": [
+      "main.js",
+      "utils/*",
+      "downloader/*",
+      "dist/*"
+    ]
+  },
+  "dependencies": {
+    "ffmpeg-static": "^4.0.1",
+    "react": "^16.13.0",
+    "react-dom": "^16.13.0",
+    "remote": "^0.2.6",
+    "youtube-mp3-downloader": "^0.6.5"
+  },
+  "keywords": [
+    "electron",
+    "react",
+    "parcel"
+  ],
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "concurrently": "^3.6.1",
+    "cross-env": "^7.0.2",
+    "electron": "^8.1.0",
+    "electron-builder": "^22.4.0",
+    "electron-packager": "^14.2.1",
+    "parcel-bundler": "^1.12.4"
+  }
+}

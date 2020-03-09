@@ -1,0 +1,92 @@
+body {
+  background-color: transparent;
+  color: #eee;
+  text-align: center;
+  padding: 15px;
+  font-family: sans-serif;
+  -webkit-app-region: drag;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+h1 {
+  margin: 25px;
+  font-size: 24px;
+  display: none;
+}
+
+.app-wrapper {
+  background: #2b2b2b;
+  border-bottom: 3px solid #ee5253;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.padding {
+  padding: 25px 45px 45px;
+}
+
+form {
+  display: flex;
+}
+
+form > input {
+  flex: 1;
+  border: none;
+  font-size: 16px;
+  color: #333;
+  -webkit-app-region: no-drag;
+}
+
+form > button {
+  background: #ee5253;
+  border: none;
+  color: #eee;
+  font-weight: bold;
+  font-size: 16px;
+  -webkit-app-region: no-drag;
+}
+
+form > input,
+form > button {
+  padding: 20px;
+}
+
+.display {
+  padding: 3px;
+  font-size: 14px;
+  border: 1px solid #333;
+  margin-bottom: 25px;
+  color: #999;
+}
+
+.display > p {
+  padding: 5px;
+}
+
+.display > p.downloading {
+  color: #fff;
+  position: relative;
+}
+
+.display > p.downloading .progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #222;
+  z-index: -1;
+}
+
+.display > p.success {
+  background: #27ae60;
+  color: #fff;
+}
+
+.display > p.error {
+  background: #c0392b;
+  color: #fff;
+}
