@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+const { ipcRenderer } = window.require('electron')
 
 // Components
 import TitleBar from './title-bar/title-bar.component.jsx'
@@ -11,12 +12,12 @@ const App = () => {
     'Paste a video link below'
   )
 
-  // useEffect(() => {
-  //   window.ipcRenderer.send('ping')
-  //   window.ipcRenderer.on('pong', (event, message) => {
-  //     console.log(message)
-  //   })
-  // }, [])
+  useEffect(() => {
+    ipcRenderer.send('ping')
+    ipcRenderer.on('pong', (event, message) => {
+      console.log(message)
+    })
+  }, [])
 
   return (
     <div className="app-wrapper">

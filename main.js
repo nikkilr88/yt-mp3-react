@@ -33,7 +33,7 @@ const createWindow = () => {
 
   win.setMenuBarVisibility(false)
 
-  // win.webContents.openDevTools()
+  win.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished
@@ -59,6 +59,10 @@ app.on('activate', () => {
 })
 
 // !: IPC SHIZZ =================
+
+ipcMain.on('ping', (event, data) => {
+  event.sender.send('pong', 'pong')
+})
 
 ipcMain.on('download', async (event, link) => {
   // Get YouTube video id from URL
