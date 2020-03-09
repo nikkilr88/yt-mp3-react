@@ -17,21 +17,18 @@ class Downloader {
       this.downloader.download(id)
 
       this.downloader.on('finished', (err, data) => {
-        event.sender.send('download-complete', 'Complete!')
+        event.sender.send('download:success')
         resolve(data)
       })
 
       this.downloader.on('error', error => {
         console.log({ error })
-        event.sender.send(
-          'download-error',
-          'Something went wrong! Check URL and try again.'
-        )
+        event.sender.send('download:error', error)
         reject(error)
       })
 
       this.downloader.on('progress', progress => {
-        event.sender.send('download-progress', progress.progress.percentage)
+        event.sender.send('download:progress', progress.progress.percentage)
       })
     })
   }

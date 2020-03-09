@@ -1,8 +1,10 @@
 const path = require('path')
 const fs = require('fs')
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const { removeFile } = require('./utils')
 const Downloader = require('./downloader')
+
+// https://stackoverflow.com/questions/44880926/how-can-i-download-file-inside-app-folder-after-packaging
 
 const downloader = new Downloader({
   outputPath: path.join(__dirname, 'downloads')
@@ -33,7 +35,7 @@ const createWindow = () => {
 
   win.setMenuBarVisibility(false)
 
-  win.webContents.openDevTools()
+  // win.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished
@@ -60,19 +62,14 @@ app.on('activate', () => {
 
 // !: IPC SHIZZ =================
 
-ipcMain.on('ping', (event, data) => {
-  event.sender.send('pong', 'pong')
-})
-
-ipcMain.on('download', async (event, link) => {
+ipcMain.on('download', async (event, url) => {
   // Get YouTube video id from URL
-  const id = link.split('?v=')[1]
+  const id = url.split('?v=')[1]
 
   // Convert and download file locally, return file data
   const fileData = await downloader.downloadMP3({ id, event })
 
-  // Read file and open save dialog.
-  // We do this so the user can choose the save location and set the filename all at once.
+  // Open save dialog and let user name file and choose where to save the mp3 file
   const savePath = await dialog.showSaveDialog({
     defaultPath: fileData.videoTitle,
     filters: [
@@ -83,15 +80,15 @@ ipcMain.on('download', async (event, link) => {
     ]
   })
 
-  // If the user closes the dialog without saving, we remove the mp3 file from our downloads folder
+  // If the user closes the save dialog without saving, we remove the mp3 file from our downloads folder
   if (savePath.filePath === '') {
     return removeFile(fileData.file)
   }
 
-  // Read the mp3 file!
+  // Read the mp3 file
   const mp3 = fs.readFileSync(fileData.file)
 
-  // Save the file!
+  // Save the file to the path the user chose from the save dialog
   fs.writeFile(savePath.filePath, mp3, error => {
     if (error) {
       console.log(error)

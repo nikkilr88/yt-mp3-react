@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+
+// Electron
 const { ipcRenderer } = window.require('electron')
 
 // Components
@@ -8,14 +10,40 @@ import TitleBar from './title-bar/title-bar.component.jsx'
 import './App.css'
 
 const App = () => {
+  // State
+  const [url, setUrl] = useState('')
+  const [downloadPercentage, setDownloadPercentage] = useState(0)
   const [displayMessage, setDisplayMessage] = useState(
     'Paste a video link below'
   )
 
+  // Refs
+  const buttonRef = useRef()
+
+  const startDownload = e => {
+    e.preventDefault()
+
+    if (url !== '') {
+      ipcRenderer.send('download', url)
+      buttonRef.current.disabled = true
+    }
+  }
+
   useEffect(() => {
-    ipcRenderer.send('ping')
-    ipcRenderer.on('pong', (event, message) => {
-      console.log(message)
+    ipcRenderer.on('download:progress', (event, percentage) => {
+      setDownloadPercentage(percentage)
+      setDisplayMessage(`Converting: ${Math.round(percentage)}% complete...`)
+    })
+
+    ipcRenderer.on('download:success', () => {
+      setUrl('')
+      setDownloadPercentage(0)
+      setDisplayMessage('Done!')
+      buttonRef.current.disabled = false
+
+      setTimeout(() => {
+        setDisplayMessage('Paste a video link below ')
+      }, 1000)
     })
   }, [])
 
@@ -26,10 +54,29 @@ const App = () => {
         <div className="display">
           <p>{displayMessage}</p>
         </div>
-        <form>
-          <input className="input" type="text" placeholder="video link" />
-          <button className="download-btn">Convert</button>
+
+        <form className="form">
+          <input
+            type="text"
+            value={url}
+            className="input"
+            onChange={e => setUrl(e.target.value)}
+          />
+          <button
+            ref={buttonRef}
+            onClick={startDownload}
+            className="download-btn"
+          >
+            {downloadPercentage > 0 ? '...' : 'Convert'}
+          </button>
         </form>
+      </div>
+
+      <div className="progress-bar-wrapper">
+        <div
+          className="progress-bar"
+          style={{ width: `${downloadPercentage}%` }}
+        ></div>
       </div>
     </div>
   )

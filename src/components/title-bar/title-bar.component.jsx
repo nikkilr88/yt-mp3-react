@@ -1,23 +1,32 @@
 import React from 'react'
+
+// Electron
 const { remote } = window.require('electron')
 
 // Styles
 import './title-bar.styles.css'
 
 const TitleBar = () => {
+  const closeWindow = () => {
+    remote.getCurrentWindow().close()
+  }
+
+  const minimizeWindow = () => {
+    remote.getCurrentWindow().minimize()
+  }
+
+  const maximizeWindow = () => {
+    remote.getCurrentWindow().maximize()
+  }
+
   return (
     <header className="title-bar">
       <div className="controls">
-        <button
-          className="close"
-          onClick={() => {
-            remote.getCurrentWindow().close()
-          }}
-        ></button>
-        <button className="min"></button>
-        <button className="max"></button>
+        <button className="close" onClick={closeWindow}></button>
+        <button className="min" onClick={minimizeWindow}></button>
+        <button className="max" onClick={maximizeWindow}></button>
       </div>
-      <p>YouTube to MP3</p>
+      <p className="title">YouTube to MP3</p>
     </header>
   )
 }
