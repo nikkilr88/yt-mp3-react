@@ -19,6 +19,7 @@ const App = () => {
 
   // Refs
   const buttonRef = useRef()
+  const inputRef = useRef()
 
   const startDownload = e => {
     e.preventDefault()
@@ -30,6 +31,8 @@ const App = () => {
   }
 
   useEffect(() => {
+    inputRef.current.focus()
+
     ipcRenderer.on('download:progress', (event, percentage) => {
       setDownloadPercentage(percentage)
       setDisplayMessage(`Converting: ${Math.round(percentage)}% complete...`)
@@ -45,6 +48,11 @@ const App = () => {
         setDisplayMessage('Paste a video link below ')
       }, 1000)
     })
+
+    ipcRenderer.on('download:error', () => {
+      setDisplayMessage('Please check the video URL and try again.')
+      buttonRef.current.disabled = false
+    })
   }, [])
 
   return (
@@ -59,6 +67,7 @@ const App = () => {
           <input
             type="text"
             value={url}
+            ref={inputRef}
             className="input"
             onChange={e => setUrl(e.target.value)}
           />

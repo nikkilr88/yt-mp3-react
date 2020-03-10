@@ -14,6 +14,7 @@
     "build": "electron-builder",
     "dev": "concurrently \"npm run react-start\" \"npm run electron-start\"",
     "pack": "electron-builder --dir",
+    "prebuild": "rm -rf dist",
     "postinstall": "electron-builder install-app-deps"
   },
   "build": {
@@ -25,7 +26,6 @@
       "main.js",
       "utils/*",
       "downloader/*",
-      "downloads/",
       "dist/*"
     ]
   },

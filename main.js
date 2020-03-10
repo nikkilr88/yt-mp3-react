@@ -6,8 +6,10 @@ const Downloader = require('./downloader')
 
 // https://stackoverflow.com/questions/44880926/how-can-i-download-file-inside-app-folder-after-packaging
 
+// https://stackoverflow.com/questions/38361996/how-can-i-bundle-a-precompiled-binary-with-electron
+
 const downloader = new Downloader({
-  outputPath: path.join(__dirname, 'downloads')
+  outputPath: path.join(__dirname, 'tmp')
 })
 
 // !: WINDOW SHIZZ =================
@@ -80,7 +82,7 @@ ipcMain.on('download', async (event, url) => {
     ]
   })
 
-  // If the user closes the save dialog without saving, we remove the mp3 file from our downloads folder
+  // If the user closes the save dialog without saving, we remove the mp3 file from our tmp folder
   if (savePath.filePath === '') {
     return removeFile(fileData.file)
   }
@@ -94,7 +96,7 @@ ipcMain.on('download', async (event, url) => {
       console.log(error)
     }
 
-    // Once the file has been saved, we remove it from our downloads folder
+    // Once the file has been saved, we remove it from our tmp folder
     removeFile(fileData.file)
   })
 })
