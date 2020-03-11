@@ -1,35 +1,63 @@
-const YoutubeMp3Downloader = require('youtube-mp3-downloader')
+const fs = require('fs')
+const ytdl = require('ytdl-core')
+const sanitize = require('sanitize-filename')
 const ffmpegPath = require('ffmpeg-static')
+const { throttle } = require('throttle-debounce')
+
+/*
+
+  TODO: Add event emitter and move all event.sender.send calls into main file
+  For example, we want to be able to call downloader.on('finish')
+
+  TODO: Fix mp4 video quality
+  https://github.com/fent/node-ytdl-core/blob/master/example/ffmpeg.js
+
+*/
 
 class Downloader {
   constructor({ outputPath }) {
-    this.downloader = new YoutubeMp3Downloader({
-      ffmpegPath,
-      outputPath,
-      youtubeVideoQuality: 'highest',
-      queueParallelism: 1,
-      progressTimeout: 100
-    })
+    this._outputPath = outputPath
+    this._throttleValue = 100
   }
 
-  downloadMP3 = ({ id, event }) => {
+  downloadMP4 = async ({ videoId, event }) => {
+    // Throw error if the video ID is invalid
+    if (!ytdl.validateID(videoId)) {
+      event.sender.send('download:error')
+      throw new Error('Invalid URL')
+    }
+
+    const url = `http://www.youtube.com/watch?v=${videoId}`
+    const videoInfo = await ytdl.getBasicInfo(url)
+    const videoTitle = sanitize(videoInfo.player_response.videoDetails.title)
+    const path = `${this._outputPath}/${videoTitle}.mp4`
+
     return new Promise((resolve, reject) => {
-      this.downloader.download(id)
-
-      this.downloader.on('finished', (err, data) => {
-        event.sender.send('download:success')
-        resolve(data)
+      ytdl(url, {
+        quality: 'highest'
       })
+        .on(
+          'progress',
+          throttle(this._throttleValue, (_, downloaded, total) => {
+            const percentage = (downloaded / total) * 100
+            event.sender.send('download:progress', percentage)
+          })
+        )
+        .pipe(fs.createWriteStream(path))
+        .on('finish', () => {
+          setTimeout(() => {
+            event.sender.send('download:success')
 
-      this.downloader.on('error', error => {
-        console.log({ error })
-        event.sender.send('download:error', error)
-        reject(error)
-      })
-
-      this.downloader.on('progress', progress => {
-        event.sender.send('download:progress', progress.progress.percentage)
-      })
+            resolve({
+              videoTitle,
+              file: path,
+              extension: 'mp4'
+            })
+          }, this._throttleValue)
+        })
+        .on('error', () => {
+          event.sender.send('download:error')
+        })
     })
   }
 }

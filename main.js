@@ -68,16 +68,18 @@ ipcMain.on('download', async (event, url) => {
   // Get YouTube video id from URL
   const id = url.split('?v=')[1]
 
-  // Convert and download file locally, return file data
-  const fileData = await downloader.downloadMP3({ id, event })
+  // Convert and download file to tmp folder, return file data
+  const fileData = await downloader.downloadMP4({ videoId: id, event })
 
-  // Open save dialog and let user name file and choose where to save the mp3 file
+  console.log({ fileData })
+
+  // Open save dialog and let user name file and choose where to save it
   const savePath = await dialog.showSaveDialog({
     defaultPath: fileData.videoTitle,
     filters: [
       {
-        name: 'mp3',
-        extensions: ['mp3']
+        name: fileData.extension,
+        extensions: [fileData.extension]
       }
     ]
   })

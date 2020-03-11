@@ -32,7 +32,10 @@
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "remote": "^0.2.6",
-    "youtube-mp3-downloader": "^0.6.5"
+    "sanitize-filename": "^1.6.3",
+    "throttle-debounce": "^2.1.0",
+    "youtube-mp3-downloader": "^0.6.5",
+    "ytdl-core": "^2.0.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

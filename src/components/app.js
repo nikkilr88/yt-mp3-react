@@ -36,7 +36,7 @@ const App = () => {
 
     ipcRenderer.on('download:progress', (event, percentage) => {
       setDownloadPercentage(percentage)
-      setDisplayMessage(`Converting: ${Math.round(percentage)}% complete...`)
+      setDisplayMessage(`Working: ${Math.round(percentage)}% complete...`)
     })
 
     ipcRenderer.on('download:success', () => {
@@ -47,7 +47,7 @@ const App = () => {
 
       setTimeout(() => {
         setDisplayMessage('Paste a video link below ')
-      }, 1000)
+      }, 2000)
     })
 
     ipcRenderer.on('download:error', () => {
