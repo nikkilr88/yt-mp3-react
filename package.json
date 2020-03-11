@@ -8,14 +8,12 @@
   "homepage": "./",
   "scripts": {
     "react-start": "parcel ./src/index.html --no-cache",
-    "react-build": "parcel build ./src/index.html --public-url ./",
+    "react-build": "rm -rf dist && parcel build ./src/index.html --public-url ./",
     "electron-start": "cross-env NODE_ENV=DEVELOP electron .",
-    "electron-build": "electron-packager . --out=win --overwrite",
-    "build": "electron-builder",
-    "dev": "concurrently \"npm run react-start\" \"npm run electron-start\"",
-    "pack": "electron-builder --dir",
-    "prebuild": "rm -rf dist",
-    "postinstall": "electron-builder install-app-deps"
+    "electron-pack": "electron-packager . --out=win --overwrite",
+    "electron-build": "electron-builder",
+    "postinstall": "electron-builder install-app-deps",
+    "dev": "concurrently \"yarn react-start\" \"wait-on http://localhost:1234 && yarn electron-start\""
   },
   "build": {
     "appId": "yt-mp3",
@@ -36,11 +34,6 @@
     "remote": "^0.2.6",
     "youtube-mp3-downloader": "^0.6.5"
   },
-  "keywords": [
-    "electron",
-    "react",
-    "parcel"
-  ],
   "devDependencies": {
     "babel-core": "^6.26.3",
     "babel-plugin-transform-class-properties": "^6.24.1",
@@ -52,6 +45,7 @@
     "electron": "^8.1.0",
     "electron-builder": "^22.4.0",
     "electron-packager": "^14.2.1",
-    "parcel-bundler": "^1.12.4"
+    "parcel-bundler": "^1.12.4",
+    "wait-on": "^4.0.1"
   }
 }

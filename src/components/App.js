@@ -7,7 +7,7 @@ const { ipcRenderer } = window.require('electron')
 import TitleBar from './title-bar/title-bar.component.jsx'
 
 // Styles
-import './App.css'
+import './app.css'
 
 const App = () => {
   // State
