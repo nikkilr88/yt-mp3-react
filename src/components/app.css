@@ -69,21 +69,3 @@ body {
   position: relative;
   color: rgba(255, 255, 255, 0.35);
 }
-
-.progress-bar-wrapper {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 5px;
-  width: 100%;
-  background: #19222a;
-}
-
-.progress-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 100%;
-  background: #ee5253;
-  transition: width 0.5s;
-}

@@ -5,6 +5,7 @@ const { ipcRenderer } = window.require('electron')
 
 // Components
 import TitleBar from './title-bar/title-bar.component.jsx'
+import ProgressBar from './progress-bar/progress-bar.component.jsx'
 
 // Styles
 import './app.css'
@@ -79,13 +80,8 @@ const App = () => {
             {downloadPercentage > 0 ? '...' : 'Convert'}
           </button>
         </form>
-      </div>
 
-      <div className="progress-bar-wrapper">
-        <div
-          className="progress-bar"
-          style={{ width: `${downloadPercentage}%` }}
-        ></div>
+        <ProgressBar percentage={downloadPercentage} />
       </div>
     </div>
   )
