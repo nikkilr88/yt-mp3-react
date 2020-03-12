@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "ffmpeg-static": "^4.0.1",
+    "fluent-ffmpeg": "^2.1.2",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "remote": "^0.2.6",

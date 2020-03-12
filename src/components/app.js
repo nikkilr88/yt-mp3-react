@@ -13,6 +13,7 @@ import './app.css'
 const App = () => {
   // State
   const [url, setUrl] = useState('')
+  const [format, setFormat] = useState('mp3')
   const [downloadPercentage, setDownloadPercentage] = useState(0)
   const [displayMessage, setDisplayMessage] = useState(
     'Paste a video link below'
@@ -26,7 +27,7 @@ const App = () => {
     e.preventDefault()
 
     if (url !== '') {
-      ipcRenderer.send('download', url)
+      ipcRenderer.send('download', { url, format })
       buttonRef.current.disabled = true
     }
   }
@@ -72,6 +73,14 @@ const App = () => {
             className="input"
             onChange={e => setUrl(e.target.value)}
           />
+          <select
+            onChange={e => {
+              setFormat(e.target.value)
+            }}
+          >
+            <option>mp3</option>
+            <option>mp4</option>
+          </select>
           <button
             ref={buttonRef}
             onClick={startDownload}

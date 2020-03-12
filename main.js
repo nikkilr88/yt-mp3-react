@@ -36,7 +36,6 @@ const createWindow = () => {
   )
 
   win.setMenuBarVisibility(false)
-
   // win.webContents.openDevTools()
 }
 
@@ -62,18 +61,22 @@ app.on('activate', () => {
   }
 })
 
-// !: IPC SHIZZ =================
+// !: DOWNLOAD SHIZZ =================
 
-ipcMain.on('download', async (event, url) => {
+ipcMain.on('download', async (event, { url, format }) => {
   // Get YouTube video id from URL
   const id = url.split('?v=')[1]
 
   // Download file to tmp folder
-  downloader.downloadMP4({ videoId: id, event })
+  if (format === 'mp3') {
+    downloader.downloadMP3({ videoId: id })
+  } else {
+    downloader.downloadMP4({ videoId: id })
+  }
 
   // Catch and handle any errors that come back from the downloader
   downloader.on('error', error => {
-    console.log(error)
+    // console.log(error)
     event.sender.send('download:error')
   })
 
