@@ -69,36 +69,50 @@ ipcMain.on('download', async (event, url) => {
   const id = url.split('?v=')[1]
 
   // Convert and download file to tmp folder, return file data
-  const fileData = await downloader.downloadMP4({ videoId: id, event })
+  downloader.downloadMP4({ videoId: id, event })
 
-  console.log({ fileData })
-
-  // Open save dialog and let user name file and choose where to save it
-  const savePath = await dialog.showSaveDialog({
-    defaultPath: fileData.videoTitle,
-    filters: [
-      {
-        name: fileData.extension,
-        extensions: [fileData.extension]
-      }
-    ]
+  // Catch and handle any errors that come back from the downloader
+  downloader.on('error', error => {
+    console.log(error)
+    event.sender.send('download:error')
   })
 
-  // If the user closes the save dialog without saving, we remove the mp3 file from our tmp folder
-  if (savePath.filePath === '') {
-    return removeFile(fileData.file)
-  }
+  // Get download progress
+  downloader.on('progress', percentage => {
+    event.sender.send('download:progress', percentage)
+  })
 
-  // Read the mp3 file
-  const mp3 = fs.readFileSync(fileData.file)
+  downloader.on('finish', async data => {
+    console.log('finish')
+    event.sender.send('download:success')
 
-  // Save the file to the path the user chose from the save dialog
-  fs.writeFile(savePath.filePath, mp3, error => {
-    if (error) {
-      console.log(error)
+    // Open save dialog and let user name file and choose where to save it
+    const savePath = await dialog.showSaveDialog({
+      defaultPath: data.videoTitle,
+      filters: [
+        {
+          name: data.extension,
+          extensions: [data.extension]
+        }
+      ]
+    })
+
+    // If the user closes the save dialog without saving, we remove the mp3 file from our tmp folder
+    if (savePath.filePath === '') {
+      return removeFile(data.file)
     }
 
-    // Once the file has been saved, we remove it from our tmp folder
-    removeFile(fileData.file)
+    // Read the mp3 file
+    const tmpFile = fs.readFileSync(data.file)
+
+    // Save the file to the path the user chose from the save dialog
+    fs.writeFile(savePath.filePath, tmpFile, error => {
+      if (error) {
+        console.log(error)
+      }
+
+      // Once the file has been saved, we remove it from our tmp folder
+      removeFile(data.file)
+    })
   })
 })

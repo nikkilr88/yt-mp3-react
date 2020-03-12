@@ -10,7 +10,7 @@
     "react-start": "parcel ./src/index.html --no-cache",
     "react-build": "rm -rf dist && parcel build ./src/index.html --public-url ./",
     "electron-start": "cross-env NODE_ENV=DEVELOP electron .",
-    "electron-pack": "electron-packager . --out=win --overwrite",
+    "electron-pack": "electron-packager . --out=wintest --overwrite",
     "electron-build": "electron-builder",
     "postinstall": "electron-builder install-app-deps",
     "dev": "concurrently \"yarn react-start\" \"wait-on http://localhost:1234 && yarn electron-start\""

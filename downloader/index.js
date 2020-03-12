@@ -1,4 +1,5 @@
 const fs = require('fs')
+const EventEmitter = require('events')
 const ytdl = require('ytdl-core')
 const sanitize = require('sanitize-filename')
 const ffmpegPath = require('ffmpeg-static')
@@ -14,8 +15,9 @@ const { throttle } = require('throttle-debounce')
 
 */
 
-class Downloader {
+class Downloader extends EventEmitter {
   constructor({ outputPath }) {
+    super()
     this._outputPath = outputPath
     this._throttleValue = 100
   }
@@ -23,8 +25,12 @@ class Downloader {
   downloadMP4 = async ({ videoId, event }) => {
     // Throw error if the video ID is invalid
     if (!ytdl.validateID(videoId)) {
-      event.sender.send('download:error')
-      throw new Error('Invalid URL')
+      process.nextTick(() => {
+        this.emit('error', new Error('Invalid video ID'))
+        this.removeAllListeners()
+      })
+
+      return
     }
 
     const url = `http://www.youtube.com/watch?v=${videoId}`
@@ -32,33 +38,26 @@ class Downloader {
     const videoTitle = sanitize(videoInfo.player_response.videoDetails.title)
     const path = `${this._outputPath}/${videoTitle}.mp4`
 
-    return new Promise((resolve, reject) => {
-      ytdl(url, {
-        quality: 'highest'
-      })
-        .on(
-          'progress',
-          throttle(this._throttleValue, (_, downloaded, total) => {
-            const percentage = (downloaded / total) * 100
-            event.sender.send('download:progress', percentage)
-          })
-        )
-        .pipe(fs.createWriteStream(path))
-        .on('finish', () => {
-          setTimeout(() => {
-            event.sender.send('download:success')
-
-            resolve({
-              videoTitle,
-              file: path,
-              extension: 'mp4'
-            })
-          }, this._throttleValue)
-        })
-        .on('error', () => {
-          event.sender.send('download:error')
-        })
+    ytdl(url, {
+      quality: 'highest'
     })
+      .on(
+        'progress',
+        throttle(this._throttleValue, (_, downloaded, total) => {
+          const percentage = (downloaded / total) * 100
+          this.emit('progress', percentage)
+        })
+      )
+      .pipe(fs.createWriteStream(path))
+      .on('finish', () => {
+        setTimeout(() => {
+          this.emit('finish', {
+            videoTitle,
+            file: path,
+            extension: 'mp4'
+          })
+        }, this._throttleValue)
+      })
   }
 }
 
