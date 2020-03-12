@@ -40,6 +40,7 @@ class Downloader extends EventEmitter {
     return isValid
   }
 
+  // TODO: Refactor this to return a promise
   generateFileData = async ({ extension, url }) => {
     const videoInfo = await ytdl.getBasicInfo(url)
     const videoTitle = sanitize(videoInfo.player_response.videoDetails.title)
