@@ -68,7 +68,7 @@ ipcMain.on('download', async (event, url) => {
   // Get YouTube video id from URL
   const id = url.split('?v=')[1]
 
-  // Convert and download file to tmp folder, return file data
+  // Download file to tmp folder
   downloader.downloadMP4({ videoId: id, event })
 
   // Catch and handle any errors that come back from the downloader
@@ -82,8 +82,8 @@ ipcMain.on('download', async (event, url) => {
     event.sender.send('download:progress', percentage)
   })
 
+  // Handle data once download is finished
   downloader.on('finish', async data => {
-    console.log('finish')
     event.sender.send('download:success')
 
     // Open save dialog and let user name file and choose where to save it
@@ -97,7 +97,7 @@ ipcMain.on('download', async (event, url) => {
       ]
     })
 
-    // If the user closes the save dialog without saving, we remove the mp3 file from our tmp folder
+    // If the user closes the save dialog without saving, we remove the file from our tmp folder
     if (savePath.filePath === '') {
       return removeFile(data.file)
     }
