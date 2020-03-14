@@ -8,8 +8,20 @@ const Downloader = require('./downloader')
 
 // https://stackoverflow.com/questions/38361996/how-can-i-bundle-a-precompiled-binary-with-electron
 
+// !: DOWNLOADER SHIZZ =================
+// Set up tmp downloads output path and downloader
+const isDev = process.env.NODE_ENV === 'DEVELOP'
+
+const outputPath = isDev
+  ? path.join(__dirname, 'tmp')
+  : path.join(app.getPath('userData'), 'tmp')
+
+if (!fs.existsSync(outputPath)) {
+  fs.mkdirSync(outputPath)
+}
+
 const downloader = new Downloader({
-  outputPath: path.join(__dirname, 'tmp')
+  outputPath
 })
 
 // !: WINDOW SHIZZ =================
@@ -26,8 +38,6 @@ const createWindow = () => {
       nodeIntegration: true
     }
   })
-
-  const isDev = process.env.NODE_ENV === 'DEVELOP'
 
   win.loadURL(
     isDev
@@ -76,18 +86,17 @@ ipcMain.on('download', async (event, { url, format }) => {
 
   // Catch and handle any errors that come back from the downloader
   downloader.on('error', error => {
-    // console.log(error)
-    event.sender.send('download:error')
+    event.reply('download:error', error)
   })
 
   // Get download progress
   downloader.on('progress', percentage => {
-    event.sender.send('download:progress', percentage)
+    event.reply('download:progress', percentage)
   })
 
   // Handle data once download is finished
   downloader.on('finish', async data => {
-    event.sender.send('download:success')
+    event.reply('download:success')
 
     // Open save dialog and let user name file and choose where to save it
     const savePath = await dialog.showSaveDialog({

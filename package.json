@@ -1,5 +1,5 @@
 {
-  "name": "react-electron",
+  "name": "youtube-downloader",
   "version": "1.0.0",
   "description": "",
   "author": "Nicole Sattler",
@@ -25,6 +25,9 @@
       "utils/*",
       "downloader/*",
       "dist/*"
+    ],
+    "asarUnpack": [
+      "**/app/node_modules/ffmpeg-static/*"
     ]
   },
   "dependencies": {

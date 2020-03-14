@@ -37,7 +37,7 @@ const App = () => {
 
     ipcRenderer.on('download:progress', (event, percentage) => {
       setDownloadPercentage(percentage)
-      setDisplayMessage(`Working: ${Math.round(percentage)}% complete...`)
+      setDisplayMessage(`Downloading: ${Math.round(percentage)}% complete...`)
     })
 
     ipcRenderer.on('download:success', () => {
@@ -51,8 +51,8 @@ const App = () => {
       }, 2000)
     })
 
-    ipcRenderer.on('download:error', () => {
-      setDisplayMessage('Please check the video URL and try again.')
+    ipcRenderer.on('download:error', (event, error) => {
+      setDisplayMessage(error.message)
       buttonRef.current.disabled = false
     })
   }, [])
@@ -86,7 +86,7 @@ const App = () => {
             onClick={startDownload}
             className="download-btn"
           >
-            {downloadPercentage > 0 ? '...' : 'Convert'}
+            {downloadPercentage > 0 ? '...' : 'Download'}
           </button>
         </form>
 

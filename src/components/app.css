@@ -57,7 +57,7 @@ body {
 
 .form > button:disabled {
   filter: grayscale(50%);
-  cursor: not-allowed;
+  cursor: progress;
 }
 
 .form > input,

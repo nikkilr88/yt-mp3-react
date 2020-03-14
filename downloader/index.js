@@ -2,10 +2,11 @@ const fs = require('fs')
 const EventEmitter = require('events')
 const ytdl = require('ytdl-core')
 const ffmpeg = require('fluent-ffmpeg')
-const ffmpegPath = require('ffmpeg-static')
 const sanitize = require('sanitize-filename')
 const { throttle } = require('throttle-debounce')
+let ffmpegPath = require('ffmpeg-static')
 
+ffmpegPath = ffmpegPath.replace('app.asar', 'app.asar.unpacked')
 /*
 
   TODO: Add event emitter and move all event.sender.send calls into main file
@@ -32,7 +33,7 @@ class Downloader extends EventEmitter {
     if (!isValid) {
       // We use nextTick so the .on() calls can be async
       process.nextTick(() => {
-        this.emit('error', new Error('Invalid video ID'))
+        this.emit('error', new Error('Invalid URL'))
         this.removeAllListeners()
       })
     }
@@ -58,15 +59,21 @@ class Downloader extends EventEmitter {
     const fileData = await this.generateFileData({ extension: 'mp3', url })
 
     // TODO: Add download quality options [normal, high]
-    const stream = ytdl(url)
+    const stream = ytdl(url, {
+      quality: 'highestaudio'
+    })
 
-    stream.on(
-      'progress',
-      throttle(this._throttleValue, (_, downloaded, total) => {
-        const percentage = (downloaded / total) * 100
-        this.emit('progress', percentage)
+    stream
+      .on(
+        'progress',
+        throttle(this._throttleValue, (_, downloaded, total) => {
+          const percentage = (downloaded / total) * 100
+          this.emit('progress', percentage)
+        })
+      )
+      .on('error', () => {
+        this.emit('error', new Error('Something went wrong.'))
       })
-    )
 
     const proc = new ffmpeg({ source: stream }).setFfmpegPath(ffmpegPath)
     proc
