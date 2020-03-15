@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 
 // Electron
-const { ipcRenderer } = window.require('electron')
+const { remote, ipcRenderer } = window.require('electron')
+const { Menu, MenuItem } = remote
 
 // Components
 import TitleBar from './title-bar/title-bar.component.jsx'
@@ -33,11 +34,31 @@ const App = () => {
   }
 
   useEffect(() => {
+    const menu = new Menu()
+
+    const menuItem = new MenuItem({
+      label: 'Paste URL',
+      role: 'paste'
+    })
+
+    menu.append(menuItem)
+
+    inputRef.current.addEventListener(
+      'contextmenu',
+      event => {
+        event.preventDefault()
+        menu.popup(remote.getCurrentWindow())
+      },
+      false
+    )
+  }, [])
+
+  useEffect(() => {
     inputRef.current.focus()
 
     ipcRenderer.on('download:progress', (event, percentage) => {
       setDownloadPercentage(percentage)
-      setDisplayMessage(`Downloading: ${Math.round(percentage)}% complete...`)
+      setDisplayMessage(`Working: ${Math.round(percentage)}% complete...`)
     })
 
     ipcRenderer.on('download:success', () => {
