@@ -9,9 +9,6 @@ let ffmpegPath = require('ffmpeg-static')
 ffmpegPath = ffmpegPath.replace('app.asar', 'app.asar.unpacked')
 /*
 
-  TODO: Add event emitter and move all event.sender.send calls into main file
-  For example, we want to be able to call downloader.on('finish')
-
   TODO: Fix mp4 video quality
   https://github.com/fent/node-ytdl-core/blob/master/example/ffmpeg.js
 
