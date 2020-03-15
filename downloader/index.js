@@ -38,6 +38,9 @@ class Downloader extends EventEmitter {
     return isValid
   }
 
+  // !: Generate file data
+  // This returns an object with the video title and the path where it will be saved.
+
   // TODO: Refactor this to return a promise
   generateFileData = async ({ extension, url }) => {
     const videoInfo = await ytdl.getBasicInfo(url)
@@ -46,6 +49,30 @@ class Downloader extends EventEmitter {
       videoTitle,
       path: `${this._outputPath}/${videoTitle}.${extension}`
     }
+  }
+
+  // !: Send error
+  handleError = () => {
+    this.emit('error', new Error('Something went wrong.'))
+    this.removeAllListeners()
+  }
+
+  // !: Send download / convert progress information
+  handleProgress = (_, downloaded, total) => {
+    const percentage = (downloaded / total) * 100
+    this.emit('progress', percentage)
+  }
+
+  // !: Send file data when download / convert is complete
+  handleFinish = ({ fileData, extension }) => {
+    setTimeout(() => {
+      this.emit('finish', {
+        extension,
+        file: fileData.path,
+        videoTitle: fileData.videoTitle
+      })
+      this.removeAllListeners()
+    }, this._throttleValue)
   }
 
   // !: Download video as MP3 file
@@ -61,29 +88,16 @@ class Downloader extends EventEmitter {
     })
 
     stream
-      .on(
-        'progress',
-        throttle(this._throttleValue, (_, downloaded, total) => {
-          const percentage = (downloaded / total) * 100
-          this.emit('progress', percentage)
-        })
-      )
-      .on('error', () => {
-        this.emit('error', new Error('Something went wrong.'))
-      })
+      .on('progress', throttle(this._throttleValue, this.handleProgress))
+      .on('error', this.handleError)
 
     const proc = new ffmpeg({ source: stream }).setFfmpegPath(ffmpegPath)
+
     proc
       .format('mp3')
       .save(fileData.path)
-      .on('end', () => {
-        this.emit('finish', {
-          file: fileData.path,
-          extension: 'mp3',
-          videoTitle: fileData.videoTitle
-        })
-        this.removeAllListeners()
-      })
+      .on('end', () => this.handleFinish({ fileData, extension: 'mp3' }))
+      .on('error', this.handleError)
   }
 
   // !: Download video as MP4 file
@@ -91,31 +105,15 @@ class Downloader extends EventEmitter {
     if (!this.validateID({ videoId })) return
 
     const url = `http://www.youtube.com/watch?v=${videoId}`
-    const videoInfo = await ytdl.getBasicInfo(url)
-    const videoTitle = sanitize(videoInfo.player_response.videoDetails.title)
-    const path = `${this._outputPath}/${videoTitle}.mp4`
+    const fileData = await this.generateFileData({ extension: 'mp3', url })
 
     ytdl(url, {
       quality: 'highest'
     })
-      .on(
-        'progress',
-        throttle(this._throttleValue, (_, downloaded, total) => {
-          const percentage = (downloaded / total) * 100
-          this.emit('progress', percentage)
-        })
-      )
-      .pipe(fs.createWriteStream(path))
-      .on('finish', () => {
-        setTimeout(() => {
-          this.emit('finish', {
-            videoTitle,
-            file: path,
-            extension: 'mp4'
-          })
-          this.removeAllListeners()
-        }, this._throttleValue)
-      })
+      .on('progress', throttle(this._throttleValue, this.handleProgress))
+      .pipe(fs.createWriteStream(fileData.path))
+      .on('finish', () => this.handleFinish({ fileData, extension: 'mp4' }))
+      .on('error', this.handleError)
   }
 }
 
