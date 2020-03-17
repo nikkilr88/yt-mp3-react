@@ -45,6 +45,7 @@ class Downloader extends EventEmitter {
   generateFileData = async ({ extension, url }) => {
     const videoInfo = await ytdl.getBasicInfo(url)
     const videoTitle = sanitize(videoInfo.player_response.videoDetails.title)
+
     return {
       videoTitle,
       path: `${this._outputPath}/${videoTitle}.${extension}`
@@ -53,7 +54,7 @@ class Downloader extends EventEmitter {
 
   // !: Send error
   handleError = () => {
-    this.emit('error', new Error('Something went wrong.'))
+    this.emit('error', new Error("Can't process video."))
     this.removeAllListeners()
   }
 
@@ -87,9 +88,7 @@ class Downloader extends EventEmitter {
       quality: 'highestaudio'
     })
 
-    stream
-      .on('progress', throttle(this._throttleValue, this.handleProgress))
-      .on('error', this.handleError)
+    stream.on('progress', throttle(this._throttleValue, this.handleProgress))
 
     const proc = new ffmpeg({ source: stream }).setFfmpegPath(ffmpegPath)
 
@@ -110,10 +109,10 @@ class Downloader extends EventEmitter {
     ytdl(url, {
       quality: 'highest'
     })
+      .on('error', this.handleError)
       .on('progress', throttle(this._throttleValue, this.handleProgress))
       .pipe(fs.createWriteStream(fileData.path))
       .on('finish', () => this.handleFinish({ fileData, extension: 'mp4' }))
-      .on('error', this.handleError)
   }
 }
 
