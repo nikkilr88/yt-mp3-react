@@ -46,7 +46,7 @@ const createWindow = () => {
   )
 
   win.setMenuBarVisibility(false)
-  // win.webContents.openDevTools()
+  win.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished
@@ -73,16 +73,19 @@ app.on('activate', () => {
 
 // !: DOWNLOAD SHIZZ =================
 
-ipcMain.on('download', async (event, { url, format }) => {
+ipcMain.on('download', async (event, { url, formatData }) => {
   // TODO: Validate entire URL or splice to cut off everything after video ID
   // Get YouTube video id from URL
   const id = url.split('?v=')[1]
 
+  // get format and quality
+  const [format, quality] = formatData.split(':')
+  console.log(format, quality)
   // Download file to tmp folder
   if (format === 'mp3') {
-    downloader.downloadMP3({ videoId: id })
+    downloader.downloadMP3({ videoId: id, quality })
   } else {
-    downloader.downloadMP4({ videoId: id })
+    downloader.downloadMP4({ videoId: id, quality })
   }
 
   // Catch and handle any errors that come back from the downloader

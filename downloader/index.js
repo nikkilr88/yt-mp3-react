@@ -77,7 +77,7 @@ class Downloader extends EventEmitter {
   }
 
   // !: Download video as MP3 file
-  downloadMP3 = async ({ videoId }) => {
+  downloadMP3 = async ({ videoId, quality }) => {
     if (!this.validateID({ videoId })) return
 
     const url = `http://www.youtube.com/watch?v=${videoId}`
@@ -94,13 +94,14 @@ class Downloader extends EventEmitter {
 
     proc
       .format('mp3')
+      .audioBitrate(quality === 'high' ? 192 : 96)
       .save(fileData.path)
       .on('end', () => this.handleFinish({ fileData, extension: 'mp3' }))
       .on('error', this.handleError)
   }
 
   // !: Download video as MP4 file
-  downloadMP4 = async ({ videoId }) => {
+  downloadMP4 = async ({ videoId, quality }) => {
     if (!this.validateID({ videoId })) return
 
     const url = `http://www.youtube.com/watch?v=${videoId}`
