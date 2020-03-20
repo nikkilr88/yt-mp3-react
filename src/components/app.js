@@ -100,9 +100,9 @@ const App = () => {
               setFormat(event.target.value)
             }}
           >
-            <option value="mp3:high">mp3 (high)</option>
-            <option value="mp3:low">mp3 (low)</option>
-            <option value="mp4:low">mp4 (low)</option>
+            <option value="mp3:high">mp3 (HQ)</option>
+            <option value="mp3:low">mp3 (LQ)</option>
+            <option value="mp4:low">mp4 (LQ)</option>
           </select>
           <button
             ref={buttonRef}
