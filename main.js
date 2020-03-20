@@ -8,8 +8,20 @@ const Downloader = require('./downloader')
 
 // https://stackoverflow.com/questions/38361996/how-can-i-bundle-a-precompiled-binary-with-electron
 
+// !: DOWNLOADER SHIZZ =================
+// Set up tmp downloads output path and downloader
+const isDev = process.env.NODE_ENV === 'DEVELOP'
+
+const outputPath = isDev
+  ? path.join(__dirname, 'tmp')
+  : path.join(app.getPath('userData'), 'tmp')
+
+if (!fs.existsSync(outputPath)) {
+  fs.mkdirSync(outputPath)
+}
+
 const downloader = new Downloader({
-  outputPath: path.join(__dirname, 'tmp')
+  outputPath
 })
 
 // !: WINDOW SHIZZ =================
@@ -27,8 +39,6 @@ const createWindow = () => {
     }
   })
 
-  const isDev = process.env.NODE_ENV === 'DEVELOP'
-
   win.loadURL(
     isDev
       ? 'http://localhost:1234'
@@ -36,7 +46,6 @@ const createWindow = () => {
   )
 
   win.setMenuBarVisibility(false)
-
   // win.webContents.openDevTools()
 }
 
@@ -62,41 +71,61 @@ app.on('activate', () => {
   }
 })
 
-// !: IPC SHIZZ =================
+// !: DOWNLOAD SHIZZ =================
 
-ipcMain.on('download', async (event, url) => {
+ipcMain.on('download', async (event, { url, format }) => {
+  // TODO: Validate entire URL or splice to cut off everything after video ID
   // Get YouTube video id from URL
   const id = url.split('?v=')[1]
 
-  // Convert and download file locally, return file data
-  const fileData = await downloader.downloadMP3({ id, event })
-
-  // Open save dialog and let user name file and choose where to save the mp3 file
-  const savePath = await dialog.showSaveDialog({
-    defaultPath: fileData.videoTitle,
-    filters: [
-      {
-        name: 'mp3',
-        extensions: ['mp3']
-      }
-    ]
-  })
-
-  // If the user closes the save dialog without saving, we remove the mp3 file from our tmp folder
-  if (savePath.filePath === '') {
-    return removeFile(fileData.file)
+  // Download file to tmp folder
+  if (format === 'mp3') {
+    downloader.downloadMP3({ videoId: id })
+  } else {
+    downloader.downloadMP4({ videoId: id })
   }
 
-  // Read the mp3 file
-  const mp3 = fs.readFileSync(fileData.file)
+  // Catch and handle any errors that come back from the downloader
+  downloader.on('error', error => {
+    event.reply('download:error', error)
+  })
 
-  // Save the file to the path the user chose from the save dialog
-  fs.writeFile(savePath.filePath, mp3, error => {
-    if (error) {
-      console.log(error)
+  // Get download progress
+  downloader.on('progress', percentage => {
+    event.reply('download:progress', percentage)
+  })
+
+  // Handle data once download is finished
+  downloader.on('finish', async data => {
+    event.reply('download:success')
+
+    // Open save dialog and let user name file and choose where to save it
+    const savePath = await dialog.showSaveDialog({
+      defaultPath: data.videoTitle,
+      filters: [
+        {
+          name: data.extension,
+          extensions: [data.extension]
+        }
+      ]
+    })
+
+    // If the user closes the save dialog without saving, we remove the file from our tmp folder
+    if (savePath.filePath === '') {
+      return removeFile(data.file)
     }
 
-    // Once the file has been saved, we remove it from our tmp folder
-    removeFile(fileData.file)
+    // Read the mp3 file
+    const tmpFile = fs.readFileSync(data.file)
+
+    // Save the file to the path the user chose from the save dialog
+    fs.writeFile(savePath.filePath, tmpFile, error => {
+      if (error) {
+        console.log(error)
+      }
+
+      // Once the file has been saved, we remove it from our tmp folder
+      removeFile(data.file)
+    })
   })
 })

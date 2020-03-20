@@ -1,5 +1,5 @@
 {
-  "name": "react-electron",
+  "name": "youtube-downloader",
   "version": "1.0.0",
   "description": "",
   "author": "Nicole Sattler",
@@ -10,7 +10,7 @@
     "react-start": "parcel ./src/index.html --no-cache",
     "react-build": "rm -rf dist && parcel build ./src/index.html --public-url ./",
     "electron-start": "cross-env NODE_ENV=DEVELOP electron .",
-    "electron-pack": "electron-packager . --out=win --overwrite",
+    "electron-pack": "electron-packager . --out=wintest --overwrite",
     "electron-build": "electron-builder",
     "postinstall": "electron-builder install-app-deps",
     "dev": "concurrently \"yarn react-start\" \"wait-on http://localhost:1234 && yarn electron-start\""
@@ -25,14 +25,21 @@
       "utils/*",
       "downloader/*",
       "dist/*"
+    ],
+    "asarUnpack": [
+      "**/app/node_modules/ffmpeg-static/*"
     ]
   },
   "dependencies": {
     "ffmpeg-static": "^4.0.1",
+    "fluent-ffmpeg": "^2.1.2",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "remote": "^0.2.6",
-    "youtube-mp3-downloader": "^0.6.5"
+    "sanitize-filename": "^1.6.3",
+    "throttle-debounce": "^2.1.0",
+    "youtube-mp3-downloader": "^0.6.5",
+    "ytdl-core": "^2.0.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

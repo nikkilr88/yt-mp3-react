@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 
 // Electron
-const { ipcRenderer } = window.require('electron')
+const { remote, ipcRenderer } = window.require('electron')
+const { Menu, MenuItem } = remote
 
 // Components
 import TitleBar from './title-bar/title-bar.component.jsx'
@@ -13,6 +14,7 @@ import './app.css'
 const App = () => {
   // State
   const [url, setUrl] = useState('')
+  const [format, setFormat] = useState('mp3')
   const [downloadPercentage, setDownloadPercentage] = useState(0)
   const [displayMessage, setDisplayMessage] = useState(
     'Paste a video link below'
@@ -26,17 +28,37 @@ const App = () => {
     e.preventDefault()
 
     if (url !== '') {
-      ipcRenderer.send('download', url)
+      ipcRenderer.send('download', { url, format })
       buttonRef.current.disabled = true
     }
   }
+
+  useEffect(() => {
+    const menu = new Menu()
+
+    const menuItem = new MenuItem({
+      label: 'Paste URL',
+      role: 'paste'
+    })
+
+    menu.append(menuItem)
+
+    inputRef.current.addEventListener(
+      'contextmenu',
+      event => {
+        event.preventDefault()
+        menu.popup(remote.getCurrentWindow())
+      },
+      false
+    )
+  }, [])
 
   useEffect(() => {
     inputRef.current.focus()
 
     ipcRenderer.on('download:progress', (event, percentage) => {
       setDownloadPercentage(percentage)
-      setDisplayMessage(`Converting: ${Math.round(percentage)}% complete...`)
+      setDisplayMessage(`Working: ${Math.round(percentage)}% complete...`)
     })
 
     ipcRenderer.on('download:success', () => {
@@ -47,11 +69,11 @@ const App = () => {
 
       setTimeout(() => {
         setDisplayMessage('Paste a video link below ')
-      }, 1000)
+      }, 2000)
     })
 
-    ipcRenderer.on('download:error', () => {
-      setDisplayMessage('Please check the video URL and try again.')
+    ipcRenderer.on('download:error', (event, error) => {
+      setDisplayMessage(error.message)
       buttonRef.current.disabled = false
     })
   }, [])
@@ -72,12 +94,20 @@ const App = () => {
             className="input"
             onChange={e => setUrl(e.target.value)}
           />
+          <select
+            onChange={e => {
+              setFormat(e.target.value)
+            }}
+          >
+            <option>mp3</option>
+            <option>mp4</option>
+          </select>
           <button
             ref={buttonRef}
             onClick={startDownload}
             className="download-btn"
           >
-            {downloadPercentage > 0 ? '...' : 'Convert'}
+            {downloadPercentage > 0 ? '...' : 'Download'}
           </button>
         </form>
 

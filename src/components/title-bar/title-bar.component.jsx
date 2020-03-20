@@ -26,7 +26,7 @@ const TitleBar = () => {
         <button className="min" onClick={minimizeWindow}></button>
         <button className="max" onClick={maximizeWindow}></button>
       </div>
-      <p className="title">YouTube to MP3</p>
+      <p className="title">YouTube Downloader</p>
     </header>
   )
 }
