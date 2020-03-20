@@ -105,7 +105,7 @@ class Downloader extends EventEmitter {
     if (!this.validateID({ videoId })) return
 
     const url = `http://www.youtube.com/watch?v=${videoId}`
-    const fileData = await this.generateFileData({ extension: 'mp3', url })
+    const fileData = await this.generateFileData({ extension: 'mp4', url })
 
     ytdl(url, {
       quality: 'highest'
