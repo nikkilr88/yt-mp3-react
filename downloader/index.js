@@ -46,7 +46,7 @@ class Downloader extends EventEmitter {
     This returns an object with the video title and the path where it will be saved.
 
     @param {{extension: string, url: string}}
-    @returns {object} file data with video title and path where file is saved
+    @returns {{videoTitle: string, path: string}} file data with video title and path where file is saved
     
   =============================================== */
 
