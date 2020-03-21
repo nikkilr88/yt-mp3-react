@@ -15,7 +15,7 @@ class Downloader extends EventEmitter {
     this._throttleValue = 100
   }
 
-  // !: Check to see if the video id is valid
+  // !: Check to see if the video URL is valid
   // Change this to validate whole URL?
   validateURL = url => {
     const isValid = ytdl.validateURL(url)
