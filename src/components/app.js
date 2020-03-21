@@ -16,9 +16,7 @@ const App = () => {
   const [url, setUrl] = useState('')
   const [format, setFormat] = useState('mp3')
   const [downloadPercentage, setDownloadPercentage] = useState(0)
-  const [displayMessage, setDisplayMessage] = useState(
-    'Paste a video link below'
-  )
+  const [displayMessage, setDisplayMessage] = useState('Ready')
 
   // Refs
   const buttonRef = useRef()
@@ -64,11 +62,11 @@ const App = () => {
     ipcRenderer.on('download:success', () => {
       setUrl('')
       setDownloadPercentage(0)
-      setDisplayMessage('Done!')
+      setDisplayMessage('🎉 Done!')
       buttonRef.current.disabled = false
 
       setTimeout(() => {
-        setDisplayMessage('Paste a video link below ')
+        setDisplayMessage('Ready')
       }, 2000)
     })
 
