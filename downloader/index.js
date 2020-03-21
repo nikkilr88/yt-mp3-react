@@ -7,12 +7,6 @@ const { throttle } = require('throttle-debounce')
 let ffmpegPath = require('ffmpeg-static')
 
 ffmpegPath = ffmpegPath.replace('app.asar', 'app.asar.unpacked')
-/*
-
-  TODO: Fix mp4 video quality
-  https://github.com/fent/node-ytdl-core/blob/master/example/ffmpeg.js
-
-*/
 
 class Downloader extends EventEmitter {
   constructor({ outputPath }) {
@@ -23,8 +17,8 @@ class Downloader extends EventEmitter {
 
   // !: Check to see if the video id is valid
   // Change this to validate whole URL?
-  validateID = ({ videoId }) => {
-    const isValid = ytdl.validateID(videoId)
+  validateURL = url => {
+    const isValid = ytdl.validateURL(url)
 
     // Throw error if the video ID is invalid
     if (!isValid) {
@@ -77,11 +71,11 @@ class Downloader extends EventEmitter {
 
   // !: Init download
   // If there are any errors fetching video data or if the URL is invalid, we return an error
-  initDownload = async ({ format, videoId }) => {
-    if (!this.validateID({ videoId })) return
+  initDownload = async ({ downloadFormat, url }) => {
+    if (!this.validateURL(url)) return
 
     let fileData
-    const url = `http://www.youtube.com/watch?v=${videoId}`
+    // const url = `http://www.youtube.com/watch?v=${videoId}`
 
     try {
       fileData = await this.generateFileData({ extension: 'mp3', url })
@@ -90,7 +84,7 @@ class Downloader extends EventEmitter {
       return this.handleError()
     }
 
-    if (format === 'mp3') {
+    if (downloadFormat === 'mp3') {
       this.downloadMP3({ fileData, url })
     } else {
       this.downloadMP4({ fileData, url })
@@ -118,6 +112,9 @@ class Downloader extends EventEmitter {
 
   // !: Download video as MP4 file
   downloadMP4 = ({ fileData, url }) => {
+    // TODO: Fix mp4 video quality
+    // https://github.com/fent/node-ytdl-core/blob/master/example/ffmpeg.js
+
     ytdl(url, {
       quality: 'highest'
     })

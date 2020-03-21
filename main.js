@@ -74,11 +74,8 @@ app.on('activate', () => {
 // !: DOWNLOAD SHIZZ =================
 
 ipcMain.on('download', async (event, { url, format }) => {
-  // Get YouTube video id from URL
-  const id = url.split('?v=')[1]
-
   // Download file to tmp folder
-  downloader.initDownload({ format, videoId: id })
+  downloader.initDownload({ downloadFormat: format, url })
 
   // Catch and handle any errors that come back from the downloader
   downloader.on('error', error => {
@@ -99,7 +96,7 @@ ipcMain.on('download', async (event, { url, format }) => {
       defaultPath: data.videoTitle,
       filters: [
         {
-          name: data.extension,
+          name: `${data.extension.toUpperCase()} File (.${data.extension})`,
           extensions: [data.extension]
         }
       ]
