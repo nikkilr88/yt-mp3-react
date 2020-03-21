@@ -40,12 +40,11 @@ class Downloader extends EventEmitter {
 
   // !: Generate file data
   // This returns an object with the video title and the path where it will be saved.
-
-  // TODO: Refactor this to return a promise
   generateFileData = async ({ extension, url }) => {
     const videoInfo = await ytdl.getBasicInfo(url)
     const videoTitle = sanitize(videoInfo.player_response.videoDetails.title)
 
+    // TODO: Refactor this to return a promise
     return {
       videoTitle,
       path: `${this._outputPath}/${videoTitle}.${extension}`
@@ -76,13 +75,30 @@ class Downloader extends EventEmitter {
     }, this._throttleValue)
   }
 
-  // !: Download video as MP3 file
-  downloadMP3 = async ({ videoId }) => {
+  // !: Init download
+  // If there are any errors fetching video data or if the URL is invalid, we return an error
+  initDownload = async ({ format, videoId }) => {
     if (!this.validateID({ videoId })) return
 
+    let fileData
     const url = `http://www.youtube.com/watch?v=${videoId}`
-    const fileData = await this.generateFileData({ extension: 'mp3', url })
 
+    try {
+      fileData = await this.generateFileData({ extension: 'mp3', url })
+    } catch (error) {
+      // console.log(error)
+      return this.handleError()
+    }
+
+    if (format === 'mp3') {
+      this.downloadMP3({ fileData, url })
+    } else {
+      this.downloadMP4({ fileData, url })
+    }
+  }
+
+  // !: Download video as MP3 file
+  downloadMP3 = ({ fileData, url }) => {
     // TODO: Add download quality options [normal, high]
     const stream = ytdl(url, {
       quality: 'highestaudio'
@@ -101,12 +117,7 @@ class Downloader extends EventEmitter {
   }
 
   // !: Download video as MP4 file
-  downloadMP4 = async ({ videoId }) => {
-    if (!this.validateID({ videoId })) return
-
-    const url = `http://www.youtube.com/watch?v=${videoId}`
-    const fileData = await this.generateFileData({ extension: 'mp4', url })
-
+  downloadMP4 = ({ fileData, url }) => {
     ytdl(url, {
       quality: 'highest'
     })
