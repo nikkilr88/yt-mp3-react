@@ -77,5 +77,5 @@ body {
 .display > p {
   padding: 5px;
   position: relative;
-  color: rgba(255, 255, 255, 0.35);
+  color: #888;
 }

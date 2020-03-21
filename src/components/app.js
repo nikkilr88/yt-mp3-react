@@ -58,7 +58,7 @@ const App = () => {
 
     ipcRenderer.on('download:progress', (event, percentage) => {
       setDownloadPercentage(percentage)
-      setDisplayMessage(`Working: ${Math.round(percentage)}% complete...`)
+      setDisplayMessage(`⚡ Working: ${Math.round(percentage)}% complete...`)
     })
 
     ipcRenderer.on('download:success', () => {
