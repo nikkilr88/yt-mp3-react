@@ -16,11 +16,10 @@ class Downloader extends EventEmitter {
   }
 
   // !: Check to see if the video URL is valid
-  // Change this to validate whole URL?
   validateURL = url => {
     const isValid = ytdl.validateURL(url)
 
-    // Throw error if the video ID is invalid
+    // Throw error if the video URL is invalid
     if (!isValid) {
       // We use nextTick so the .on() calls can be async
       process.nextTick(() => {
