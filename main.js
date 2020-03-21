@@ -16,6 +16,8 @@ const outputPath = isDev
   ? path.join(__dirname, 'tmp')
   : path.join(app.getPath('userData'), 'tmp')
 
+// TODO: Empty out this directory on app start.
+// If the app is closed while downloading a file, the file is not removed
 if (!fs.existsSync(outputPath)) {
   fs.mkdirSync(outputPath)
 }
