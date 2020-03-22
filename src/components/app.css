@@ -25,6 +25,9 @@ body {
 .form {
   display: flex;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  border: 3px solid #f3f3f3;
+  background: #f3f3f3;
+  border-radius: 3px;
 }
 
 .form > input {
@@ -32,7 +35,6 @@ body {
   border: none;
   font-size: 16px;
   color: #333;
-  border-radius: 3px 0 0 3px;
   background: #f3f3f3;
 }
 
@@ -43,16 +45,16 @@ body {
   padding: 0 5px;
   font-size: 16px;
   color: #888;
+  margin-right: 5px;
 }
 
 .form > button {
-  background: #ee5253;
+  background: #ed6a5a;
   border: none;
-  border-left: 5px solid #f3f3f3;
   color: #eee;
   font-weight: bold;
   font-size: 16px;
-  border-radius: 0 3px 3px 0;
+  border-radius: 3px;
 }
 
 .form > button:disabled {
