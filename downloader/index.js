@@ -1,4 +1,5 @@
 const fs = require('fs')
+const async = require('async')
 const EventEmitter = require('events')
 const ytdl = require('ytdl-core')
 const ffmpeg = require('fluent-ffmpeg')
@@ -13,6 +14,12 @@ class Downloader extends EventEmitter {
     super()
     this._outputPath = outputPath
     this._throttleValue = 100
+
+    this._downloads = {}
+    this._downloadQueue = async.queue((task, callback) => {
+      this.emit('error')
+      setTimeout(callback, 1000)
+    })
   }
 
   /* ===============================================
@@ -25,7 +32,7 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  validateURL = url => {
+  validateURL(url) {
     const isValid = ytdl.validateURL(url)
 
     // Throw error if the video URL is invalid
@@ -33,7 +40,7 @@ class Downloader extends EventEmitter {
       // We use nextTick so the .on() calls can be async
       process.nextTick(() => {
         this.emit('error', new Error('Invalid URL'))
-        this.removeAllListeners()
+        // this.removeAllListeners()
       })
     }
 
@@ -70,9 +77,9 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  handleError = () => {
+  handleError() {
     this.emit('error', new Error("Can't process video."))
-    this.removeAllListeners()
+    // this.removeAllListeners()
   }
 
   /* ===============================================
@@ -82,9 +89,12 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  handleProgress = (_, downloaded, total) => {
+  handleProgress = (_, downloaded, total, task) => {
     const percentage = (downloaded / total) * 100
-    this.emit('progress', percentage)
+
+    this._downloads[task.name].percentage = percentage
+
+    this.emit('downloads', Object.values(this._downloads))
   }
 
   /* ===============================================
@@ -103,7 +113,7 @@ class Downloader extends EventEmitter {
         file: fileData.path,
         videoTitle: fileData.videoTitle
       })
-      this.removeAllListeners()
+      // this.removeAllListeners()
     }, this._throttleValue)
   }
 
@@ -129,9 +139,19 @@ class Downloader extends EventEmitter {
     }
 
     if (downloadFormat === 'mp3') {
-      this.downloadMP3({ fileData, url })
+      this._downloadQueue.push(
+        { name: fileData.videoTitle },
+        this.downloadMP3({ fileData, url })
+      )
     } else {
-      this.downloadMP4({ fileData, url })
+      this._downloadQueue.push(
+        { name: fileData.videoTitle },
+        this.downloadMP4({ fileData, url })
+      )
+    }
+
+    this._downloads[fileData.videoTitle] = {
+      name: fileData.videoTitle
     }
   }
 
@@ -148,7 +168,12 @@ class Downloader extends EventEmitter {
       quality: 'highestaudio'
     })
 
-    stream.on('progress', throttle(this._throttleValue, this.handleProgress))
+    stream.on(
+      'progress',
+      throttle(this._throttleValue, (...rest) =>
+        this.handleProgress(...rest, { name: fileData.videoTitle })
+      )
+    )
 
     const proc = new ffmpeg({ source: stream }).setFfmpegPath(ffmpegPath)
 

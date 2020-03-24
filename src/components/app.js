@@ -19,6 +19,7 @@ const App = () => {
   const [url, setUrl] = useState('')
   const [format, setFormat] = useState('mp3')
   const [downloadPercentage, setDownloadPercentage] = useState(0)
+  const [downloads, setDownloads] = useState([])
   const [displayMessage, setDisplayMessage] = useState('Ready')
 
   // Refs
@@ -30,7 +31,7 @@ const App = () => {
 
     if (url !== '') {
       ipcRenderer.send('download', { url, format })
-      buttonRef.current.disabled = true
+      // buttonRef.current.disabled = true
     }
   }
 
@@ -57,6 +58,10 @@ const App = () => {
   useEffect(() => {
     inputRef.current.focus()
 
+    ipcRenderer.on('downloads', (event, downloads) => {
+      setDownloads(downloads)
+    })
+
     ipcRenderer.on('download:progress', (event, percentage) => {
       setDownloadPercentage(percentage)
       setDisplayMessage(`⚡ Working: ${Math.round(percentage)}% complete...`)
@@ -66,7 +71,7 @@ const App = () => {
       setUrl('')
       setDownloadPercentage(0)
       setDisplayMessage('🎉 Done!')
-      buttonRef.current.disabled = false
+      // buttonRef.current.disabled = false
 
       setTimeout(() => {
         setDisplayMessage('Ready')
@@ -75,7 +80,7 @@ const App = () => {
 
     ipcRenderer.on('download:error', (event, error) => {
       setDisplayMessage(error.message)
-      buttonRef.current.disabled = false
+      // buttonRef.current.disabled = false
     })
   }, [])
 
@@ -108,18 +113,15 @@ const App = () => {
             onClick={startDownload}
             className="download-btn"
           >
-            {downloadPercentage > 0 ? (
-              '...'
-            ) : (
-              <Fragment>
-                {' '}
-                <img src={DownloadIcon} alt="download icon" /> Download
-              </Fragment>
-            )}
+            <img src={DownloadIcon} alt="download icon" /> Download
           </button>
         </form>
-
-        <ProgressBar percentage={downloadPercentage} />
+        {downloads.map(download => (
+          <p>
+            {download.name} - {download.percentage}
+          </p>
+        ))}
+        {/* <ProgressBar percentage={downloadPercentage} /> */}
       </div>
     </div>
   )

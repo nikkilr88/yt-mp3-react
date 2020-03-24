@@ -48,7 +48,7 @@ const createWindow = () => {
   )
 
   win.setMenuBarVisibility(false)
-  // win.webContents.openDevTools()
+  win.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished
@@ -87,6 +87,10 @@ ipcMain.on('download', async (event, { url, format }) => {
   // Get download progress
   downloader.on('progress', percentage => {
     event.reply('download:progress', percentage)
+  })
+
+  downloader.on('downloads', downloads => {
+    event.reply('downloads', downloads)
   })
 
   // Handle data once download is finished
