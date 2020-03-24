@@ -154,6 +154,7 @@ class Downloader extends EventEmitter {
 
     proc
       .format('mp3')
+      .audioCodec('libmp3lame')
       .audioBitrate(192)
       .save(fileData.path)
       .on('end', () => this.handleFinish({ fileData, extension: 'mp3' }))

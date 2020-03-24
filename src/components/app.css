@@ -55,11 +55,20 @@ body {
   font-weight: bold;
   font-size: 16px;
   border-radius: 3px;
+  display: flex;
+  align-items: center;
 }
 
 .form > button:disabled {
   filter: grayscale(50%);
   cursor: progress;
+}
+
+.form > button img {
+  filter: invert(1);
+  margin-right: 5px;
+  height: 18px;
+  width: 18px;
 }
 
 .form > input,

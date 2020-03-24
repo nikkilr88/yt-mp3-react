@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, Fragment } from 'react'
 
 // Electron
 const { remote, ipcRenderer } = window.require('electron')
@@ -7,6 +7,9 @@ const { Menu, MenuItem } = remote
 // Components
 import TitleBar from './title-bar/title-bar.component.jsx'
 import ProgressBar from './progress-bar/progress-bar.component.jsx'
+
+// Assets
+import DownloadIcon from '../assets/download-icon.png'
 
 // Styles
 import './app.css'
@@ -105,7 +108,14 @@ const App = () => {
             onClick={startDownload}
             className="download-btn"
           >
-            {downloadPercentage > 0 ? '...' : 'Download'}
+            {downloadPercentage > 0 ? (
+              '...'
+            ) : (
+              <Fragment>
+                {' '}
+                <img src={DownloadIcon} alt="download icon" /> Download
+              </Fragment>
+            )}
           </button>
         </form>
 
