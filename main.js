@@ -16,6 +16,8 @@ const outputPath = isDev
   ? path.join(__dirname, 'tmp')
   : path.join(app.getPath('userData'), 'tmp')
 
+// TODO: Empty out this directory on app start.
+// If the app is closed while downloading a file, the file is not removed
 if (!fs.existsSync(outputPath)) {
   fs.mkdirSync(outputPath)
 }
@@ -74,16 +76,8 @@ app.on('activate', () => {
 // !: DOWNLOAD SHIZZ =================
 
 ipcMain.on('download', async (event, { url, format }) => {
-  // TODO: Validate entire URL or splice to cut off everything after video ID
-  // Get YouTube video id from URL
-  const id = url.split('?v=')[1]
-
   // Download file to tmp folder
-  if (format === 'mp3') {
-    downloader.downloadMP3({ videoId: id })
-  } else {
-    downloader.downloadMP4({ videoId: id })
-  }
+  downloader.initDownload({ downloadFormat: format, url })
 
   // Catch and handle any errors that come back from the downloader
   downloader.on('error', error => {
@@ -104,7 +98,7 @@ ipcMain.on('download', async (event, { url, format }) => {
       defaultPath: data.videoTitle,
       filters: [
         {
-          name: data.extension,
+          name: `${data.extension.toUpperCase()} File (.${data.extension})`,
           extensions: [data.extension]
         }
       ]

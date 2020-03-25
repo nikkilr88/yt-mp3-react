@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, Fragment } from 'react'
 
 // Electron
 const { remote, ipcRenderer } = window.require('electron')
@@ -8,6 +8,9 @@ const { Menu, MenuItem } = remote
 import TitleBar from './title-bar/title-bar.component.jsx'
 import ProgressBar from './progress-bar/progress-bar.component.jsx'
 
+// Assets
+import DownloadIcon from '../assets/download-icon.png'
+
 // Styles
 import './app.css'
 
@@ -16,9 +19,7 @@ const App = () => {
   const [url, setUrl] = useState('')
   const [format, setFormat] = useState('mp3')
   const [downloadPercentage, setDownloadPercentage] = useState(0)
-  const [displayMessage, setDisplayMessage] = useState(
-    'Paste a video link below'
-  )
+  const [displayMessage, setDisplayMessage] = useState('Ready')
 
   // Refs
   const buttonRef = useRef()
@@ -58,17 +59,17 @@ const App = () => {
 
     ipcRenderer.on('download:progress', (event, percentage) => {
       setDownloadPercentage(percentage)
-      setDisplayMessage(`Working: ${Math.round(percentage)}% complete...`)
+      setDisplayMessage(`⚡ Working: ${Math.round(percentage)}% complete...`)
     })
 
     ipcRenderer.on('download:success', () => {
       setUrl('')
       setDownloadPercentage(0)
-      setDisplayMessage('Done!')
+      setDisplayMessage('🎉 Done!')
       buttonRef.current.disabled = false
 
       setTimeout(() => {
-        setDisplayMessage('Paste a video link below ')
+        setDisplayMessage('Ready')
       }, 2000)
     })
 
@@ -107,7 +108,14 @@ const App = () => {
             onClick={startDownload}
             className="download-btn"
           >
-            {downloadPercentage > 0 ? '...' : 'Download'}
+            {downloadPercentage > 0 ? (
+              '...'
+            ) : (
+              <Fragment>
+                {' '}
+                <img src={DownloadIcon} alt="download icon" /> Download
+              </Fragment>
+            )}
           </button>
         </form>
 
