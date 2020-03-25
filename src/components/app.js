@@ -18,9 +18,9 @@ const App = () => {
   // State
   const [url, setUrl] = useState('')
   const [format, setFormat] = useState('mp3')
-  const [downloadPercentage, setDownloadPercentage] = useState(0)
+  const [displayMessage, setDisplayMessage] = useState('')
+  // const [downloadPercentage, setDownloadPercentage] = useState(0)
   const [downloads, setDownloads] = useState([])
-  const [displayMessage, setDisplayMessage] = useState('Ready')
 
   // Refs
   const buttonRef = useRef()
@@ -31,8 +31,9 @@ const App = () => {
 
     if (url !== '') {
       ipcRenderer.send('download', { url, format })
-      // buttonRef.current.disabled = true
     }
+
+    setUrl('')
   }
 
   useEffect(() => {
@@ -62,25 +63,11 @@ const App = () => {
       setDownloads(downloads)
     })
 
-    ipcRenderer.on('download:progress', (event, percentage) => {
-      setDownloadPercentage(percentage)
-      setDisplayMessage(`⚡ Working: ${Math.round(percentage)}% complete...`)
-    })
-
-    ipcRenderer.on('download:success', () => {
-      setUrl('')
-      setDownloadPercentage(0)
-      setDisplayMessage('🎉 Done!')
-      // buttonRef.current.disabled = false
-
-      setTimeout(() => {
-        setDisplayMessage('Ready')
-      }, 2000)
-    })
-
     ipcRenderer.on('download:error', (event, error) => {
       setDisplayMessage(error.message)
-      // buttonRef.current.disabled = false
+      setTimeout(() => {
+        setDisplayMessage('')
+      }, 2000)
     })
   }, [])
 
@@ -88,10 +75,11 @@ const App = () => {
     <div className="app-wrapper">
       <TitleBar />
       <div className="padding">
-        <div className="display">
-          <p>{displayMessage}</p>
-        </div>
-
+        {displayMessage && (
+          <div className="display">
+            <p>{displayMessage}</p>
+          </div>
+        )}
         <form className="form">
           <input
             type="text"
@@ -116,12 +104,18 @@ const App = () => {
             <img src={DownloadIcon} alt="download icon" /> Download
           </button>
         </form>
-        {downloads.map(download => (
-          <p>
-            {download.name} - {download.percentage}
-          </p>
-        ))}
-        {/* <ProgressBar percentage={downloadPercentage} /> */}
+        {!downloads.length ? (
+          <p className="no-downloads">No downloads to show</p>
+        ) : (
+          <section className="downloads">
+            {downloads.map(download => (
+              <div className="download-item">
+                <span>{download.name}</span>{' '}
+                <span>{Math.round(download.percentage)}%</span>
+              </div>
+            ))}
+          </section>
+        )}
       </div>
     </div>
   )

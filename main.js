@@ -23,7 +23,7 @@ let win
 const createWindow = () => {
   win = new BrowserWindow({
     width: 800,
-    height: 280,
+    height: 375,
     transparent: true,
     frame: false,
     webPreferences: {
@@ -38,7 +38,7 @@ const createWindow = () => {
   )
 
   win.setMenuBarVisibility(false)
-  win.webContents.openDevTools()
+  // win.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished
@@ -66,9 +66,14 @@ app.on('activate', () => {
 // !: DOWNLOAD SHIZZ =================
 
 ipcMain.on('download', async (event, { url, format }) => {
-  // Catch and handle any errors that come back from the downloader
-  downloader.on('error', error => {
-    event.reply('download:error', error)
+  // !: Start download and get response (error or download data)
+  // I don't like that I have to use a callback here. Is there another solution?
+  downloader.initDownload({ downloadFormat: format, url }, (error, data) => {
+    if (error) {
+      return event.reply('download:error', error)
+    }
+
+    console.log(data)
   })
 
   // Get download progress
@@ -76,16 +81,9 @@ ipcMain.on('download', async (event, { url, format }) => {
     event.reply('download:progress', percentage)
   })
 
+  // TODO: Remove this and just use progress.
+  // This was something I just hacked together for quick testing.
   downloader.on('downloads', downloads => {
     event.reply('downloads', downloads)
   })
-
-  // Handle data once download is finished
-  downloader.on('finish', async function handler(data) {
-    event.reply('download:success')
-    console.log('download complete! ', data.videoTitle)
-  })
-
-  // Download file to tmp folder
-  downloader.initDownload({ downloadFormat: format, url })
 })

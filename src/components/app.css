@@ -4,6 +4,7 @@ body {
   text-align: center;
   padding: 15px;
   font-family: sans-serif;
+  height: 100vh;
 }
 
 * {
@@ -16,10 +17,18 @@ body {
   position: relative;
   background: #253240;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  height: calc(100vh - 30px);
+  display: flex;
+  flex-direction: column;
 }
 
 .padding {
-  padding: 30px 45px 45px;
+  padding: 30px 45px 30px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  position: relative;
 }
 
 .form {
@@ -79,17 +88,60 @@ body {
 
 .display {
   font-size: 14px;
-  background: rgba(255, 255, 255, 0.025);
-  margin-bottom: 25px;
-  border-radius: 3px;
-  height: 40px;
+  height: 50px;
+  background: red;
   display: flex;
   justify-content: center;
   align-items: center;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
 }
 
-.display > p {
-  padding: 5px;
-  position: relative;
-  color: #888;
+.downloads {
+  margin-top: 25px;
+  overflow-y: scroll;
+  padding-right: 15px;
+}
+
+/* width */
+.downloads::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+.downloads::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Handle */
+.downloads::-webkit-scrollbar-thumb {
+  background: #1d2833;
+}
+
+.no-downloads {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.25;
+  flex: 1;
+}
+
+.downloads h1 {
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.download-item {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  border-radius: 5px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.download-item:nth-child(even) {
+  background: rgba(255, 255, 255, 0.05);
 }

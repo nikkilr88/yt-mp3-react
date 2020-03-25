@@ -22,6 +22,8 @@ class Downloader extends EventEmitter {
     this._downloadQueue = async.queue((task, callback) => {
       callback()
     }, 1)
+
+    // https://stackoverflow.com/questions/57362319/how-to-download-files-one-by-one-in-node-js
   }
 
   /* ===============================================
@@ -36,12 +38,6 @@ class Downloader extends EventEmitter {
 
   validateURL(url) {
     const isValid = ytdl.validateURL(url)
-
-    // Throw error if the video URL is invalid
-    if (!isValid) {
-      // We use nextTick so the .on() calls can be async
-      this.emit('error', new Error('Invalid URL'))
-    }
 
     return isValid
   }
@@ -71,17 +67,6 @@ class Downloader extends EventEmitter {
 
   /* ===============================================
 
-    !: Emit error
-    This catches error events emitted from ytdl-core and fluent-ffmpeg and emits own error event
-
-  =============================================== */
-
-  handleError() {
-    this.emit('error', new Error("Can't process video."))
-  }
-
-  /* ===============================================
-
     !: Emit progress data
     This catches progress events emitted from ytdl-core and emits own progress event with percentage value
 
@@ -89,29 +74,10 @@ class Downloader extends EventEmitter {
 
   handleProgress(_, downloaded, total, task) {
     const percentage = (downloaded / total) * 100
-
     this._downloads[task.name].percentage = percentage
 
+    // TODO: Handle all of this in React. Only send task name and percentage. Do not keep track of downloads in this class
     this.emit('downloads', Object.values(this._downloads))
-  }
-
-  /* ===============================================
-  
-    !: Send file data when download / convert is complete
-    This catches finish / end events emitted from ytdl-core and fluent-ffmpeg and emits file data with extension, file path and video title.
-
-    @param {{fileData: object, extension: string}}
-
-  =============================================== */
-
-  handleFinish({ fileData, extension }) {
-    setTimeout(() => {
-      this.emit('finish', {
-        extension,
-        file: fileData.path,
-        videoTitle: fileData.videoTitle
-      })
-    }, this._throttleValue)
   }
 
   /* ===============================================
@@ -123,32 +89,33 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  async initDownload({ downloadFormat, url }) {
-    if (!this.validateURL(url)) return
+  async initDownload({ downloadFormat, url }, callback) {
+    if (!this.validateURL(url)) {
+      return callback(new Error('Not a valid URL'))
+    }
 
     let fileData
 
     try {
-      fileData = await this.generateFileData({ extension: 'mp3', url })
+      fileData = await this.generateFileData({ extension: downloadFormat, url })
     } catch (error) {
-      // console.log(error)
-      return this.handleError()
+      return callback(new Error("Can't process video"))
+    }
+
+    this._downloads[fileData.videoTitle] = {
+      name: fileData.videoTitle
     }
 
     if (downloadFormat === 'mp3') {
       this._downloadQueue.push(
         { name: fileData.videoTitle },
-        this.downloadMP3({ fileData, url })
+        this.downloadMP3({ fileData, url }, callback)
       )
     } else {
       this._downloadQueue.push(
         { name: fileData.videoTitle },
-        this.downloadMP4({ fileData, url })
+        this.downloadMP4({ fileData, url }, callback)
       )
-    }
-
-    this._downloads[fileData.videoTitle] = {
-      name: fileData.videoTitle
     }
   }
 
@@ -159,12 +126,13 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  downloadMP3({ fileData, url }) {
+  downloadMP3({ fileData, url }, callback) {
     // TODO: Add download quality options [normal, high]
     const stream = ytdl(url, {
       quality: 'highestaudio'
     })
 
+    console.log(fileData.videoTitle)
     stream.on(
       'progress',
       throttle(this._throttleValue, (...rest) =>
@@ -179,7 +147,7 @@ class Downloader extends EventEmitter {
       .audioCodec('libmp3lame')
       .audioBitrate(192)
       .save(fileData.path)
-      .on('end', () => this.handleFinish({ fileData, extension: 'mp3' }))
+      .on('end', () => callback(null, { fileData, extension: 'mp3' }))
       .on('error', this.handleError)
   }
 
@@ -190,17 +158,22 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  downloadMP4 = ({ fileData, url }) => {
+  downloadMP4 = ({ fileData, url }, callback) => {
     // TODO: Fix mp4 video quality
     // https://github.com/fent/node-ytdl-core/blob/master/example/ffmpeg.js
 
     ytdl(url, {
       quality: 'highest'
     })
-      .on('error', this.handleError)
-      .on('progress', throttle(this._throttleValue, this.handleProgress))
+      .on('error', () => callback(new Error('Something went wrong')))
+      .on(
+        'progress',
+        throttle(this._throttleValue, (...rest) =>
+          this.handleProgress(...rest, { name: fileData.videoTitle })
+        )
+      )
       .pipe(fs.createWriteStream(fileData.path))
-      .on('finish', () => this.handleFinish({ fileData, extension: 'mp4' }))
+      .on('finish', () => callback(null, { fileData, extension: 'mp4' }))
   }
 }
 
