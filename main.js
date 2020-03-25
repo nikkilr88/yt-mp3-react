@@ -12,18 +12,8 @@ const Downloader = require('./downloader')
 // Set up tmp downloads output path and downloader
 const isDev = process.env.NODE_ENV === 'DEVELOP'
 
-const outputPath = isDev
-  ? path.join(__dirname, 'tmp')
-  : path.join(app.getPath('userData'), 'tmp')
-
-// TODO: Empty out this directory on app start.
-// If the app is closed while downloading a file, the file is not removed
-if (!fs.existsSync(outputPath)) {
-  fs.mkdirSync(outputPath)
-}
-
 const downloader = new Downloader({
-  outputPath
+  outputPath: app.getPath('downloads')
 })
 
 // !: WINDOW SHIZZ =================
@@ -76,9 +66,6 @@ app.on('activate', () => {
 // !: DOWNLOAD SHIZZ =================
 
 ipcMain.on('download', async (event, { url, format }) => {
-  // Download file to tmp folder
-  downloader.initDownload({ downloadFormat: format, url })
-
   // Catch and handle any errors that come back from the downloader
   downloader.on('error', error => {
     event.reply('download:error', error)
@@ -94,36 +81,11 @@ ipcMain.on('download', async (event, { url, format }) => {
   })
 
   // Handle data once download is finished
-  downloader.on('finish', async data => {
+  downloader.on('finish', async function handler(data) {
     event.reply('download:success')
-
-    // Open save dialog and let user name file and choose where to save it
-    const savePath = await dialog.showSaveDialog({
-      defaultPath: data.videoTitle,
-      filters: [
-        {
-          name: `${data.extension.toUpperCase()} File (.${data.extension})`,
-          extensions: [data.extension]
-        }
-      ]
-    })
-
-    // If the user closes the save dialog without saving, we remove the file from our tmp folder
-    if (savePath.filePath === '') {
-      return removeFile(data.file)
-    }
-
-    // Read the mp3 file
-    const tmpFile = fs.readFileSync(data.file)
-
-    // Save the file to the path the user chose from the save dialog
-    fs.writeFile(savePath.filePath, tmpFile, error => {
-      if (error) {
-        console.log(error)
-      }
-
-      // Once the file has been saved, we remove it from our tmp folder
-      removeFile(data.file)
-    })
+    console.log('download complete! ', data.videoTitle)
   })
+
+  // Download file to tmp folder
+  downloader.initDownload({ downloadFormat: format, url })
 })

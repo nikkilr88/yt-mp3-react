@@ -179,9 +179,7 @@ class Downloader extends EventEmitter {
       .audioCodec('libmp3lame')
       .audioBitrate(192)
       .save(fileData.path)
-      .on('end', () => {
-        this.handleFinish({ fileData, extension: 'mp3' })
-      })
+      .on('end', () => this.handleFinish({ fileData, extension: 'mp3' }))
       .on('error', this.handleError)
   }
 
