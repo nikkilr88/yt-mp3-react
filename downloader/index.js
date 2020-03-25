@@ -1,3 +1,5 @@
+'use strict'
+
 const fs = require('fs')
 const async = require('async')
 const EventEmitter = require('events')
@@ -12,14 +14,14 @@ ffmpegPath = ffmpegPath.replace('app.asar', 'app.asar.unpacked')
 class Downloader extends EventEmitter {
   constructor({ outputPath }) {
     super()
+
     this._outputPath = outputPath
     this._throttleValue = 100
 
     this._downloads = {}
     this._downloadQueue = async.queue((task, callback) => {
-      this.emit('error')
-      setTimeout(callback, 1000)
-    })
+      callback()
+    }, 1)
   }
 
   /* ===============================================
@@ -38,10 +40,7 @@ class Downloader extends EventEmitter {
     // Throw error if the video URL is invalid
     if (!isValid) {
       // We use nextTick so the .on() calls can be async
-      process.nextTick(() => {
-        this.emit('error', new Error('Invalid URL'))
-        // this.removeAllListeners()
-      })
+      this.emit('error', new Error('Invalid URL'))
     }
 
     return isValid
@@ -57,7 +56,7 @@ class Downloader extends EventEmitter {
     
   =============================================== */
 
-  generateFileData = async ({ extension, url }) => {
+  async generateFileData({ extension, url }) {
     const videoInfo = await ytdl.getBasicInfo(url)
 
     // FIXME: Once threw an error trying to read player_response. Can't replicate error.
@@ -79,7 +78,6 @@ class Downloader extends EventEmitter {
 
   handleError() {
     this.emit('error', new Error("Can't process video."))
-    // this.removeAllListeners()
   }
 
   /* ===============================================
@@ -89,7 +87,7 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  handleProgress = (_, downloaded, total, task) => {
+  handleProgress(_, downloaded, total, task) {
     const percentage = (downloaded / total) * 100
 
     this._downloads[task.name].percentage = percentage
@@ -106,14 +104,13 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  handleFinish = ({ fileData, extension }) => {
+  handleFinish({ fileData, extension }) {
     setTimeout(() => {
       this.emit('finish', {
         extension,
         file: fileData.path,
         videoTitle: fileData.videoTitle
       })
-      // this.removeAllListeners()
     }, this._throttleValue)
   }
 
@@ -126,7 +123,7 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  initDownload = async ({ downloadFormat, url }) => {
+  async initDownload({ downloadFormat, url }) {
     if (!this.validateURL(url)) return
 
     let fileData
@@ -162,7 +159,7 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  downloadMP3 = ({ fileData, url }) => {
+  downloadMP3({ fileData, url }) {
     // TODO: Add download quality options [normal, high]
     const stream = ytdl(url, {
       quality: 'highestaudio'
@@ -182,7 +179,9 @@ class Downloader extends EventEmitter {
       .audioCodec('libmp3lame')
       .audioBitrate(192)
       .save(fileData.path)
-      .on('end', () => this.handleFinish({ fileData, extension: 'mp3' }))
+      .on('end', () => {
+        this.handleFinish({ fileData, extension: 'mp3' })
+      })
       .on('error', this.handleError)
   }
 
