@@ -1,5 +1,3 @@
-'use strict'
-
 const fs = require('fs')
 const async = require('async')
 const EventEmitter = require('events')
@@ -19,11 +17,15 @@ class Downloader extends EventEmitter {
     this._throttleValue = 100
 
     this._downloads = {}
+
+    // If you want to only allow one download at a time
+    // https://stackoverflow.com/questions/57362319/how-to-download-files-one-by-one-in-node-js
     this._downloadQueue = async.queue((task, callback) => {
       callback()
-    }, 1)
+    })
 
-    // https://stackoverflow.com/questions/57362319/how-to-download-files-one-by-one-in-node-js
+    // Create reference to the original .on() method
+    this.onOriginal = this.on
   }
 
   /* ===============================================
@@ -36,9 +38,8 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  validateURL(url) {
-    const isValid = ytdl.validateURL(url)
-
+  async validateURL(url) {
+    const isValid = await ytdl.validateURL(url)
     return isValid
   }
 
@@ -82,6 +83,23 @@ class Downloader extends EventEmitter {
 
   /* ===============================================
   
+    !: Limit Event Listeners
+    Every time the user hits the 'download' button, a new event listener is added. We add this method to prevent more than one listener to be added for each event.
+
+  =============================================== */
+
+  limitListeners() {
+    const events = ['downloads', 'error', 'finish']
+
+    // Override the .on() method and return 'this' if there is already one listener for the event
+
+    for (let event of events) {
+      this.on = this.listenerCount(event) === 0 ? this.onOriginal : () => this
+    }
+  }
+
+  /* ===============================================
+  
     !: Init download
     If there are any errors fetching video data or if the URL is invalid, we return an error.
 
@@ -89,9 +107,14 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  async initDownload({ downloadFormat, url }, callback) {
-    if (!this.validateURL(url)) {
-      return callback(new Error('Not a valid URL'))
+  async initDownload({ downloadFormat, url }) {
+    this.limitListeners()
+
+    // Check if URL is valid. If it's not, early return with an error
+    const isValid = await this.validateURL(url)
+
+    if (!isValid) {
+      return this.emit('error', new Error('Not a valid URL'))
     }
 
     let fileData
@@ -99,7 +122,7 @@ class Downloader extends EventEmitter {
     try {
       fileData = await this.generateFileData({ extension: downloadFormat, url })
     } catch (error) {
-      return callback(new Error("Can't process video"))
+      return this.emit('error', new Error("Can't process video"))
     }
 
     this._downloads[fileData.videoTitle] = {
@@ -109,12 +132,12 @@ class Downloader extends EventEmitter {
     if (downloadFormat === 'mp3') {
       this._downloadQueue.push(
         { name: fileData.videoTitle },
-        this.downloadMP3({ fileData, url }, callback)
+        this.downloadMP3({ fileData, url })
       )
     } else {
       this._downloadQueue.push(
         { name: fileData.videoTitle },
-        this.downloadMP4({ fileData, url }, callback)
+        this.downloadMP4({ fileData, url })
       )
     }
   }
@@ -126,13 +149,12 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  downloadMP3({ fileData, url }, callback) {
+  downloadMP3({ fileData, url }) {
     // TODO: Add download quality options [normal, high]
     const stream = ytdl(url, {
       quality: 'highestaudio'
     })
 
-    console.log(fileData.videoTitle)
     stream.on(
       'progress',
       throttle(this._throttleValue, (...rest) =>
@@ -147,8 +169,8 @@ class Downloader extends EventEmitter {
       .audioCodec('libmp3lame')
       .audioBitrate(192)
       .save(fileData.path)
-      .on('end', () => callback(null, { fileData, extension: 'mp3' }))
-      .on('error', this.handleError)
+      .on('end', () => this.emit('finish', fileData))
+      .on('error', () => this.emit('error', new Error('Something went wrong')))
   }
 
   /* ===============================================
@@ -158,14 +180,14 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  downloadMP4 = ({ fileData, url }, callback) => {
+  downloadMP4 = ({ fileData, url }) => {
     // TODO: Fix mp4 video quality
     // https://github.com/fent/node-ytdl-core/blob/master/example/ffmpeg.js
 
     ytdl(url, {
       quality: 'highest'
     })
-      .on('error', () => callback(new Error('Something went wrong')))
+      .on('error', () => this.emit('error', new Error('Something went wrong')))
       .on(
         'progress',
         throttle(this._throttleValue, (...rest) =>
@@ -173,7 +195,7 @@ class Downloader extends EventEmitter {
         )
       )
       .pipe(fs.createWriteStream(fileData.path))
-      .on('finish', () => callback(null, { fileData, extension: 'mp4' }))
+      .on('finish', () => this.emit('finish', fileData))
   }
 }
 

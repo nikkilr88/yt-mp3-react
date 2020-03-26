@@ -66,20 +66,19 @@ app.on('activate', () => {
 // !: DOWNLOAD SHIZZ =================
 
 ipcMain.on('download', async (event, { url, format }) => {
-  // !: Start download and get response (error or download data)
-  // I don't like that I have to use a callback here. Is there another solution?
-  downloader.initDownload({ downloadFormat: format, url }, (error, data) => {
-    if (error) {
-      return event.reply('download:error', error)
-    }
+  downloader.initDownload({ downloadFormat: format, url })
 
-    console.log(data)
+  downloader.on('finish', data => {
+    console.log('Downloaded: ', data.videoTitle)
   })
 
+  downloader.on('error', error => {
+    event.reply('download:error', error)
+  })
   // Get download progress
-  downloader.on('progress', percentage => {
-    event.reply('download:progress', percentage)
-  })
+  // downloader.on('progress', percentage => {
+  //   event.reply('download:progress', percentage)
+  // })
 
   // TODO: Remove this and just use progress.
   // This was something I just hacked together for quick testing.

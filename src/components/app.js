@@ -26,6 +26,13 @@ const App = () => {
   const buttonRef = useRef()
   const inputRef = useRef()
 
+  const showDisplay = message => {
+    setDisplayMessage(message)
+    setTimeout(() => {
+      setDisplayMessage('')
+    }, 2000)
+  }
+
   const startDownload = e => {
     e.preventDefault()
 
@@ -34,6 +41,7 @@ const App = () => {
     }
 
     setUrl('')
+    showDisplay('Adding video to queue')
   }
 
   useEffect(() => {
@@ -64,10 +72,7 @@ const App = () => {
     })
 
     ipcRenderer.on('download:error', (event, error) => {
-      setDisplayMessage(error.message)
-      setTimeout(() => {
-        setDisplayMessage('')
-      }, 2000)
+      showDisplay(error.message)
     })
   }, [])
 
