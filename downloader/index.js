@@ -18,8 +18,8 @@ class Downloader extends EventEmitter {
 
     this._downloads = {}
 
-    // If you want to only allow one download at a time
-    // https://stackoverflow.com/questions/57362319/how-to-download-files-one-by-one-in-node-js
+    // Check format and call corresponding method to download file
+    // We pass callback to the download method so we can limit how many downloads start at one time. We set the download limit as the second argument to async.queue
     this._downloadQueue = async.queue((task, callback) => {
       if (task.downloadFormat === 'mp3') {
         this.downloadMP3({ fileData: task.fileData, url: task.url, callback })
@@ -60,7 +60,7 @@ class Downloader extends EventEmitter {
   async generateFileData({ extension, url }) {
     const videoInfo = await ytdl.getBasicInfo(url)
 
-    // FIXME: Once threw an error trying to read player_response. Can't replicate error.
+    // Sanitize the filename and remove special characters. If we don't do this, we won't be able to save the file.
     const videoTitle = sanitize(videoInfo.player_response.videoDetails.title)
 
     // TODO: Refactor this to return a promise
@@ -78,10 +78,11 @@ class Downloader extends EventEmitter {
   =============================================== */
 
   handleProgress(_, downloaded, total, task) {
+    // Calculate percentage
     const percentage = (downloaded / total) * 100
+    // Update task object with percentage
     this._downloads[task.name].percentage = percentage
 
-    console.log(percentage)
     // TODO: Handle all of this in React. Only send task name and percentage. Do not keep track of downloads in this class
     this.emit('downloads', Object.values(this._downloads))
   }
@@ -94,10 +95,10 @@ class Downloader extends EventEmitter {
   =============================================== */
 
   limitListeners() {
+    // A list of the events we emit
     const events = ['downloads', 'error', 'finish']
 
     // Override the .on() method and return 'this' if there is already one listener for the event
-
     for (let event of events) {
       this.on = this.listenerCount(event) === 0 ? this.onOriginal : () => this
     }
@@ -124,16 +125,19 @@ class Downloader extends EventEmitter {
 
     let fileData
 
+    // Try to generate file data. If we get back an error, we early return and emit the error
     try {
       fileData = await this.generateFileData({ extension: downloadFormat, url })
     } catch (error) {
       return this.emit('error', new Error("Can't process video"))
     }
 
+    // Add video title to the downloads object. We will update this object with download progress later.
     this._downloads[fileData.videoTitle] = {
       name: fileData.videoTitle
     }
 
+    // Push the download into the queue
     this._downloadQueue.push({ fileData, downloadFormat, url })
   }
 
