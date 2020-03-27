@@ -182,7 +182,7 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  downloadMP4 = ({ fileData, url }) => {
+  downloadMP4 = ({ fileData, url, callback }) => {
     // TODO: Fix mp4 video quality
     // https://github.com/fent/node-ytdl-core/blob/master/example/ffmpeg.js
 
@@ -197,7 +197,10 @@ class Downloader extends EventEmitter {
         )
       )
       .pipe(fs.createWriteStream(fileData.path))
-      .on('finish', () => this.emit('finish', fileData))
+      .on('finish', () => {
+        this.emit('finish', fileData)
+        callback()
+      })
   }
 }
 
