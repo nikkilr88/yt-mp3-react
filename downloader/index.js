@@ -21,8 +21,12 @@ class Downloader extends EventEmitter {
     // If you want to only allow one download at a time
     // https://stackoverflow.com/questions/57362319/how-to-download-files-one-by-one-in-node-js
     this._downloadQueue = async.queue((task, callback) => {
-      callback()
-    })
+      if (task.downloadFormat === 'mp3') {
+        this.downloadMP3({ fileData: task.fileData, url: task.url, callback })
+      } else {
+        this.downloadMP4({ fileData: task.fileData, url: task.url, callback })
+      }
+    }, 2)
 
     // Create reference to the original .on() method
     this.onOriginal = this.on
@@ -77,6 +81,7 @@ class Downloader extends EventEmitter {
     const percentage = (downloaded / total) * 100
     this._downloads[task.name].percentage = percentage
 
+    console.log(percentage)
     // TODO: Handle all of this in React. Only send task name and percentage. Do not keep track of downloads in this class
     this.emit('downloads', Object.values(this._downloads))
   }
@@ -129,17 +134,7 @@ class Downloader extends EventEmitter {
       name: fileData.videoTitle
     }
 
-    if (downloadFormat === 'mp3') {
-      this._downloadQueue.push(
-        { name: fileData.videoTitle },
-        this.downloadMP3({ fileData, url })
-      )
-    } else {
-      this._downloadQueue.push(
-        { name: fileData.videoTitle },
-        this.downloadMP4({ fileData, url })
-      )
-    }
+    this._downloadQueue.push({ fileData, downloadFormat, url })
   }
 
   /* ===============================================
@@ -149,7 +144,7 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  downloadMP3({ fileData, url }) {
+  downloadMP3({ fileData, url, callback }) {
     // TODO: Add download quality options [normal, high]
     const stream = ytdl(url, {
       quality: 'highestaudio'
@@ -169,7 +164,10 @@ class Downloader extends EventEmitter {
       .audioCodec('libmp3lame')
       .audioBitrate(192)
       .save(fileData.path)
-      .on('end', () => this.emit('finish', fileData))
+      .on('end', () => {
+        this.emit('finish', fileData)
+        callback()
+      })
       .on('error', () => this.emit('error', new Error('Something went wrong')))
   }
 

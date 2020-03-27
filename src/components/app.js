@@ -116,7 +116,11 @@ const App = () => {
             {downloads.map(download => (
               <div className="download-item">
                 <span>{download.name}</span>{' '}
-                <span>{Math.round(download.percentage)}%</span>
+                <span>
+                  {typeof download.percentage === 'number'
+                    ? `${Math.round(download.percentage)}%`
+                    : 'waiting'}
+                </span>
               </div>
             ))}
           </section>

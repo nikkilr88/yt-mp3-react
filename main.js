@@ -38,7 +38,7 @@ const createWindow = () => {
   )
 
   win.setMenuBarVisibility(false)
-  // win.webContents.openDevTools()
+  win.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished
@@ -73,8 +73,9 @@ ipcMain.on('download', async (event, { url, format }) => {
   })
 
   downloader.on('error', error => {
-    event.reply('download:error', error)
+    event.sender.send('download:error', error)
   })
+
   // Get download progress
   // downloader.on('progress', percentage => {
   //   event.reply('download:progress', percentage)
@@ -83,6 +84,6 @@ ipcMain.on('download', async (event, { url, format }) => {
   // TODO: Remove this and just use progress.
   // This was something I just hacked together for quick testing.
   downloader.on('downloads', downloads => {
-    event.reply('downloads', downloads)
+    event.sender.send('downloads', downloads)
   })
 })

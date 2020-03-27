@@ -18,7 +18,7 @@
   "build": {
     "appId": "yt-mp3",
     "directories": {
-      "output": "wintest"
+      "output": "win"
     },
     "files": [
       "main.js",
