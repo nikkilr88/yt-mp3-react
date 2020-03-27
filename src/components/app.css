@@ -129,19 +129,32 @@ body {
   flex: 1;
 }
 
-.downloads h1 {
-  font-size: 20px;
-  color: rgba(255, 255, 255, 0.35);
+.downloads-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 25px;
+}
+
+.downloads-header h1 {
+  font-size: 16px;
+}
+
+.downloads-header button {
+  border: 0;
+  background: 0;
+  color: #999;
 }
 
 .download-item {
-  padding: 15px;
+  padding: 10px;
   display: flex;
   justify-content: space-between;
   border-radius: 5px;
   color: rgba(255, 255, 255, 0.7);
+  font-size: 15px;
 }
 
-.download-item:nth-child(even) {
+.download-item:nth-child(odd) {
   background: rgba(255, 255, 255, 0.05);
 }

@@ -20,11 +20,11 @@ class Downloader extends EventEmitter {
 
     // Check format and call corresponding method to download file
     // We pass callback to the download method so we can limit how many downloads start at one time. We set the download limit as the second argument to async.queue
-    this._downloadQueue = async.queue((task, callback) => {
+    this._downloadQueue = async.queue((task, next) => {
       if (task.downloadFormat === 'mp3') {
-        this.downloadMP3({ fileData: task.fileData, url: task.url, callback })
+        this.downloadMP3({ fileData: task.fileData, url: task.url, next })
       } else {
-        this.downloadMP4({ fileData: task.fileData, url: task.url, callback })
+        this.downloadMP4({ fileData: task.fileData, url: task.url, next })
       }
     }, 2)
 
@@ -148,7 +148,7 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  downloadMP3({ fileData, url, callback }) {
+  downloadMP3({ fileData, url, next }) {
     // TODO: Add download quality options [normal, high]
     const stream = ytdl(url, {
       quality: 'highestaudio'
@@ -170,7 +170,7 @@ class Downloader extends EventEmitter {
       .save(fileData.path)
       .on('end', () => {
         this.emit('finish', fileData)
-        callback()
+        next()
       })
       .on('error', () => this.emit('error', new Error('Something went wrong')))
   }
@@ -182,7 +182,7 @@ class Downloader extends EventEmitter {
 
   =============================================== */
 
-  downloadMP4 = ({ fileData, url, callback }) => {
+  downloadMP4 = ({ fileData, url, next }) => {
     // TODO: Fix mp4 video quality
     // https://github.com/fent/node-ytdl-core/blob/master/example/ffmpeg.js
 
@@ -199,7 +199,7 @@ class Downloader extends EventEmitter {
       .pipe(fs.createWriteStream(fileData.path))
       .on('finish', () => {
         this.emit('finish', fileData)
-        callback()
+        next()
       })
   }
 }

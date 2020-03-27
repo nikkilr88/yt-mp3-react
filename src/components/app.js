@@ -20,6 +20,15 @@ const App = () => {
   const [format, setFormat] = useState('mp3')
   const [displayMessage, setDisplayMessage] = useState('')
   // const [downloadPercentage, setDownloadPercentage] = useState(0)
+
+  const dummyDownloads = [
+    { name: 'Awesome Song One', percentage: 42 },
+    { name: "I'm a great song", percentage: 28 },
+    { name: 'Some sad song', percentage: null },
+    { name: 'I really like this song', percentage: null },
+    { name: 'Yooooo', percentage: null }
+  ]
+
   const [downloads, setDownloads] = useState([])
 
   // Refs
@@ -112,18 +121,24 @@ const App = () => {
         {!downloads.length ? (
           <p className="no-downloads">No downloads to show</p>
         ) : (
-          <section className="downloads">
-            {downloads.map(download => (
-              <div className="download-item">
-                <span>{download.name}</span>{' '}
-                <span>
-                  {typeof download.percentage === 'number'
-                    ? `${Math.round(download.percentage)}%`
-                    : 'waiting'}
-                </span>
-              </div>
-            ))}
-          </section>
+          <Fragment>
+            <div className="downloads-header">
+              <h1>Downloads</h1>
+              <button>Clear completed</button>
+            </div>
+            <section className="downloads">
+              {downloads.map(download => (
+                <div className="download-item">
+                  <span>{download.name}</span>{' '}
+                  <span>
+                    {typeof download.percentage === 'number'
+                      ? `${Math.round(download.percentage)}%`
+                      : 'waiting'}
+                  </span>
+                </div>
+              ))}
+            </section>
+          </Fragment>
         )}
       </div>
     </div>

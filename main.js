@@ -38,7 +38,7 @@ const createWindow = () => {
   )
 
   win.setMenuBarVisibility(false)
-  win.webContents.openDevTools()
+  // win.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished
