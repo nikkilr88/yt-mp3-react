@@ -19,11 +19,10 @@ const App = () => {
   const [url, setUrl] = useState('')
   const [format, setFormat] = useState('mp3')
   const [displayMessage, setDisplayMessage] = useState('')
-  // const [downloadPercentage, setDownloadPercentage] = useState(0)
 
   const dummyDownloads = [
     { name: 'Awesome Song One', percentage: 42 },
-    { name: "I'm a great song", percentage: 28 },
+    { name: "I'm a great song", percentage: 100 },
     { name: 'Some sad song', percentage: null },
     { name: 'I really like this song', percentage: null },
     { name: 'Yooooo', percentage: null }
@@ -34,14 +33,33 @@ const App = () => {
   // Refs
   const buttonRef = useRef()
   const inputRef = useRef()
+  const timeoutRef = useRef()
 
-  const showDisplay = message => {
-    setDisplayMessage(message)
-    setTimeout(() => {
+  // !: Show the display popup and hide it after 2 seconds
+  const showDisplay = ({ message, type }) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+
+    setDisplayMessage({ message, type })
+
+    timeoutRef.current = setTimeout(() => {
       setDisplayMessage('')
     }, 2000)
   }
 
+  // !: Clear all of the completed downloads from the downloads array
+  const clearCompletedDownloads = () => {
+    ipcRenderer.send('clearCompleted')
+
+    const activeDownloads = downloads.filter(
+      download => download.percentage !== 100
+    )
+
+    setDownloads(activeDownloads)
+  }
+
+  // !: Send request to start the download if the input isn't empty
   const startDownload = e => {
     e.preventDefault()
 
@@ -50,9 +68,11 @@ const App = () => {
     }
 
     setUrl('')
-    showDisplay('Adding video to queue')
+    showDisplay({ message: 'Adding video to queue', type: 'INFO' })
   }
 
+  // !: Create the context (right click) menu
+  // The only option we add is 'paste'
   useEffect(() => {
     const menu = new Menu()
 
@@ -73,6 +93,7 @@ const App = () => {
     )
   }, [])
 
+  // !: Ipc Renderer shiz to communicate with main.js
   useEffect(() => {
     inputRef.current.focus()
 
@@ -81,7 +102,7 @@ const App = () => {
     })
 
     ipcRenderer.on('download:error', (event, error) => {
-      showDisplay(error.message)
+      showDisplay({ message: error.message, type: 'ERROR' })
     })
   }, [])
 
@@ -90,8 +111,14 @@ const App = () => {
       <TitleBar />
       <div className="padding">
         {displayMessage && (
-          <div className="display">
-            <p>{displayMessage}</p>
+          <div
+            className="display"
+            style={{
+              background:
+                displayMessage.type === 'ERROR' ? '#c0392b' : '#19222a'
+            }}
+          >
+            <p>{displayMessage.message}</p>
           </div>
         )}
         <form className="form">
@@ -119,12 +146,12 @@ const App = () => {
           </button>
         </form>
         {!downloads.length ? (
-          <p className="no-downloads">No downloads to show</p>
+          <p className="no-downloads"> No downloads</p>
         ) : (
           <Fragment>
             <div className="downloads-header">
               <h1>Downloads</h1>
-              <button>Clear completed</button>
+              <button onClick={clearCompletedDownloads}>Clear completed</button>
             </div>
             <section className="downloads">
               {downloads.map(download => (

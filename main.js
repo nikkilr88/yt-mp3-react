@@ -76,14 +76,13 @@ ipcMain.on('download', async (event, { url, format }) => {
     event.sender.send('download:error', error)
   })
 
-  // Get download progress
-  // downloader.on('progress', percentage => {
-  //   event.reply('download:progress', percentage)
-  // })
-
-  // TODO: Remove this and just use progress.
-  // This was something I just hacked together for quick testing.
   downloader.on('downloads', downloads => {
     event.sender.send('downloads', downloads)
   })
+})
+
+// !: CLEAR OUT COMPLETED DOWNLOADS =================
+
+ipcMain.on('clearCompleted', event => {
+  downloader.clearCompletedDownloads()
 })

@@ -21,12 +21,19 @@ class Downloader extends EventEmitter {
     // Check format and call corresponding method to download file
     // We pass callback to the download method so we can limit how many downloads start at one time. We set the download limit as the second argument to async.queue
     this._downloadQueue = async.queue((task, next) => {
+      const downloadData = { fileData: task.fileData, url: task.url, next }
+
       if (task.downloadFormat === 'mp3') {
-        this.downloadMP3({ fileData: task.fileData, url: task.url, next })
+        this.downloadMP3(downloadData)
       } else {
-        this.downloadMP4({ fileData: task.fileData, url: task.url, next })
+        this.downloadMP4(downloadData)
       }
     }, 2)
+
+    // This runs after all of the tasks in the queue are complete
+    this._downloadQueue.drain(() => {
+      console.log('All tasks complete!')
+    })
 
     // Create reference to the original .on() method
     this.onOriginal = this.on
@@ -79,11 +86,13 @@ class Downloader extends EventEmitter {
 
   handleProgress(_, downloaded, total, task) {
     // Calculate percentage
+    // ? Round value here?
     const percentage = (downloaded / total) * 100
-    // Update task object with percentage
+
+    // Update downloads task object with percentage
     this._downloads[task.name].percentage = percentage
 
-    // TODO: Handle all of this in React. Only send task name and percentage. Do not keep track of downloads in this class
+    // Emit an array of all the downloads
     this.emit('downloads', Object.values(this._downloads))
   }
 
@@ -106,6 +115,21 @@ class Downloader extends EventEmitter {
 
   /* ===============================================
   
+    !: Clear completed downloads
+    Loop through the downloads object and remove any downloads that have a percentage of 100
+
+  =============================================== */
+
+  clearCompletedDownloads = () => {
+    for (let download in this._downloads) {
+      if (this._downloads[download].percentage === 100) {
+        delete this._downloads[download]
+      }
+    }
+  }
+
+  /* ===============================================
+  
     !: Init download
     If there are any errors fetching video data or if the URL is invalid, we return an error.
 
@@ -116,7 +140,7 @@ class Downloader extends EventEmitter {
   async initDownload({ downloadFormat, url }) {
     this.limitListeners()
 
-    // Check if URL is valid. If it's not, early return with an error
+    // Check if URL is valid. If it's not, return an error
     const isValid = await this.validateURL(url)
 
     if (!isValid) {
@@ -125,11 +149,17 @@ class Downloader extends EventEmitter {
 
     let fileData
 
-    // Try to generate file data. If we get back an error, we early return and emit the error
+    // Try to generate file data. If we get back an error, we return and emit the error
     try {
       fileData = await this.generateFileData({ extension: downloadFormat, url })
     } catch (error) {
       return this.emit('error', new Error("Can't process video"))
+    }
+
+    // If the video title is already in the downloads object, we return an error
+    // TODO: Don't just look at title! Add format to downloads object and compare title + format
+    if (fileData.videoTitle in this._downloads) {
+      return this.emit('error', new Error('Video already in queue'))
     }
 
     // Add video title to the downloads object. We will update this object with download progress later.
@@ -149,7 +179,6 @@ class Downloader extends EventEmitter {
   =============================================== */
 
   downloadMP3({ fileData, url, next }) {
-    // TODO: Add download quality options [normal, high]
     const stream = ytdl(url, {
       quality: 'highestaudio'
     })
@@ -183,7 +212,7 @@ class Downloader extends EventEmitter {
   =============================================== */
 
   downloadMP4 = ({ fileData, url, next }) => {
-    // TODO: Fix mp4 video quality
+    // ? Improve video quality
     // https://github.com/fent/node-ytdl-core/blob/master/example/ffmpeg.js
 
     ytdl(url, {

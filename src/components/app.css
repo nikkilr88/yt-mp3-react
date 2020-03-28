@@ -89,7 +89,6 @@ body {
 .display {
   font-size: 14px;
   height: 50px;
-  background: #c0392b;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -125,7 +124,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.25;
+  opacity: 0.45;
   flex: 1;
 }
 
@@ -144,6 +143,7 @@ body {
   border: 0;
   background: 0;
   color: #999;
+  outline: none;
 }
 
 .download-item {
