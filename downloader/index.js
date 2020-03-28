@@ -185,8 +185,8 @@ class Downloader extends EventEmitter {
 
     stream.on(
       'progress',
-      throttle(this._throttleValue, (...rest) =>
-        this.handleProgress(...rest, { name: fileData.videoTitle })
+      throttle(this._throttleValue, (...args) =>
+        this.handleProgress(...args, { name: fileData.videoTitle })
       )
     )
 
