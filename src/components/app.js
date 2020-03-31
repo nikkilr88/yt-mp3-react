@@ -21,11 +21,11 @@ const App = () => {
   const [displayMessage, setDisplayMessage] = useState('')
 
   const dummyDownloads = [
-    { name: 'Awesome Song One', percentage: 42 },
-    { name: "I'm a great song", percentage: 100 },
-    { name: 'Some sad song', percentage: null },
-    { name: 'I really like this song', percentage: null },
-    { name: 'Yooooo', percentage: null }
+    { name: 'Awesome Song One', percentage: 42, format: 'MP3' },
+    { name: "I'm a great song", percentage: 100,  format: 'MP4' },
+    { name: 'Some sad song', percentage: null,  format: 'MP4' },
+    { name: 'I really like this song', percentage: null,  format: 'MP3' },
+    { name: 'Yooooo', percentage: null,  format: 'MP3' }
   ]
 
   const [downloads, setDownloads] = useState([])
@@ -156,7 +156,10 @@ const App = () => {
             <section className="downloads">
               {downloads.map(download => (
                 <div className="download-item">
-                  <span>{download.name}</span>{' '}
+                  <div className='download-title-wrapper'>
+                    <span class='format-tag'>{download.format}</span>
+                    <span className='download-title'>{download.name}</span>
+                  </div>
                   <span>
                     {typeof download.percentage === 'number'
                       ? `${Math.round(download.percentage)}%`

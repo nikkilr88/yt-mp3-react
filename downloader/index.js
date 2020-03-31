@@ -73,6 +73,7 @@ class Downloader extends EventEmitter {
     // TODO: Refactor this to return a promise
     return {
       videoTitle,
+      format: extension,
       path: `${this._outputPath}/${videoTitle}.${extension}`
     }
   }
@@ -86,11 +87,12 @@ class Downloader extends EventEmitter {
 
   handleProgress(_, downloaded, total, task) {
     // Calculate percentage
-    // ? Round value here?
+    // ? Round value here
     const percentage = (downloaded / total) * 100
 
+    // TODO: Emit one object with name, format and percentage
     // Update downloads task object with percentage
-    this._downloads[task.name].percentage = percentage
+    this._downloads[`${task.name}_${task.format}`].percentage = percentage
 
     // Emit an array of all the downloads
     this.emit('downloads', Object.values(this._downloads))
@@ -157,14 +159,15 @@ class Downloader extends EventEmitter {
     }
 
     // If the video title is already in the downloads object, we return an error
-    // TODO: Don't just look at title! Add format to downloads object and compare title + format
-    if (fileData.videoTitle in this._downloads) {
+    if (`${fileData.videoTitle}_${downloadFormat}` in this._downloads) {
       return this.emit('error', new Error('Video already in queue'))
     }
 
     // Add video title to the downloads object. We will update this object with download progress later.
-    this._downloads[fileData.videoTitle] = {
-      name: fileData.videoTitle
+    // TODO: Use URL as object property
+    this._downloads[`${fileData.videoTitle}_${downloadFormat}`] = {
+      name: fileData.videoTitle,
+      format: downloadFormat
     }
 
     // Push the download into the queue
@@ -186,7 +189,10 @@ class Downloader extends EventEmitter {
     stream.on(
       'progress',
       throttle(this._throttleValue, (...args) =>
-        this.handleProgress(...args, { name: fileData.videoTitle })
+        this.handleProgress(...args, {
+          name: fileData.videoTitle,
+          format: fileData.format
+        })
       )
     )
 
@@ -222,7 +228,10 @@ class Downloader extends EventEmitter {
       .on(
         'progress',
         throttle(this._throttleValue, (...rest) =>
-          this.handleProgress(...rest, { name: fileData.videoTitle })
+          this.handleProgress(...rest, {
+            name: fileData.videoTitle,
+            format: fileData.format
+          })
         )
       )
       .pipe(fs.createWriteStream(fileData.path))
