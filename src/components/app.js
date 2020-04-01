@@ -106,6 +106,7 @@ const App = () => {
     })
   }, [])
 
+  // TODO: Create components for form and downloads
   return (
     <div className="app-wrapper">
       <TitleBar />
