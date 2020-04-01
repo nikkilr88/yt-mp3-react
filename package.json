@@ -16,9 +16,9 @@
     "dev": "concurrently \"yarn react-start\" \"wait-on http://localhost:1234 && yarn electron-start\""
   },
   "build": {
-    "appId": "yt-mp3",
+    "appId": "youtube-downloader",
     "directories": {
-      "output": "wintest"
+      "output": "win"
     },
     "files": [
       "main.js",

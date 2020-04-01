@@ -33,7 +33,7 @@ let win
 const createWindow = () => {
   win = new BrowserWindow({
     width: 800,
-    height: 280,
+    height: 290,
     transparent: true,
     frame: false,
     webPreferences: {
@@ -48,7 +48,7 @@ const createWindow = () => {
   )
 
   win.setMenuBarVisibility(false)
-  // win.webContents.openDevTools()
+  win.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished
