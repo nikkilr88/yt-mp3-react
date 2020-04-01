@@ -66,10 +66,10 @@ app.on('activate', () => {
 // !: DOWNLOAD SHIZZ =================
 
 ipcMain.on('download', async (event, { url, format }) => {
-  downloader.initDownload({ downloadFormat: format, url })
+  downloader.initDownload({ format, url })
 
   downloader.on('finish', data => {
-    console.log('Downloaded: ', data.videoTitle)
+    console.log('Downloaded: ', data.videoTitle, data.format)
   })
 
   downloader.on('error', error => {
