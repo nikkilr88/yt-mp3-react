@@ -23,7 +23,7 @@ let win
 const createWindow = () => {
   win = new BrowserWindow({
     width: 800,
-    height: 375,
+    height: 425,
     transparent: true,
     frame: false,
     webPreferences: {

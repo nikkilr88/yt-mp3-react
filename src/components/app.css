@@ -23,7 +23,7 @@ body {
 }
 
 .padding {
-  padding: 30px 45px 30px;
+  padding: 45px;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -33,10 +33,10 @@ body {
 
 .form {
   display: flex;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
   border: 3px solid #f3f3f3;
   background: #f3f3f3;
   border-radius: 3px;
+  margin-bottom: 45px;
 }
 
 .form > input {
@@ -132,11 +132,10 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 25px;
 }
 
 .downloads-header h1 {
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .downloads-header button {
