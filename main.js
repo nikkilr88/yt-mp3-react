@@ -23,7 +23,7 @@ if (!fs.existsSync(outputPath)) {
 }
 
 const downloader = new Downloader({
-  outputPath
+  outputPath,
 })
 
 // !: WINDOW SHIZZ =================
@@ -34,11 +34,12 @@ const createWindow = () => {
   win = new BrowserWindow({
     width: 800,
     height: 290,
+    icon: path.join(__dirname, 'icon.ico'),
     transparent: true,
     frame: false,
     webPreferences: {
-      nodeIntegration: true
-    }
+      nodeIntegration: true,
+    },
   })
 
   win.loadURL(
@@ -80,17 +81,17 @@ ipcMain.on('download', async (event, { url, format }) => {
   downloader.initDownload({ downloadFormat: format, url })
 
   // Catch and handle any errors that come back from the downloader
-  downloader.on('error', error => {
+  downloader.on('error', (error) => {
     event.reply('download:error', error)
   })
 
   // Get download progress
-  downloader.on('progress', percentage => {
+  downloader.on('progress', (percentage) => {
     event.reply('download:progress', percentage)
   })
 
   // Handle data once download is finished
-  downloader.on('finish', async data => {
+  downloader.on('finish', async (data) => {
     event.reply('download:success')
 
     // Open save dialog and let user name file and choose where to save it
@@ -99,9 +100,9 @@ ipcMain.on('download', async (event, { url, format }) => {
       filters: [
         {
           name: `${data.extension.toUpperCase()} File (.${data.extension})`,
-          extensions: [data.extension]
-        }
-      ]
+          extensions: [data.extension],
+        },
+      ],
     })
 
     // If the user closes the save dialog without saving, we remove the file from our tmp folder
@@ -113,7 +114,7 @@ ipcMain.on('download', async (event, { url, format }) => {
     const tmpFile = fs.readFileSync(data.file)
 
     // Save the file to the path the user chose from the save dialog
-    fs.writeFile(savePath.filePath, tmpFile, error => {
+    fs.writeFile(savePath.filePath, tmpFile, (error) => {
       if (error) {
         console.log(error)
       }
