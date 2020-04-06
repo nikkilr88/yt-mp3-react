@@ -2,6 +2,8 @@
 
 A desktop app for downloading MP3 and MP4s from YouTube.
 
+[Download for Windows](https://github.com/nikkilr88/yt-mp3-react/releases)
+
 ---
 
 ### Built With
