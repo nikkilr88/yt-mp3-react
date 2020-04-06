@@ -22,8 +22,6 @@ You must have the following packages installed:
 
 ### Installation
 
-_\* Currently only available for Windows. V1.0.0 release coming soon!_
-
 1. Clone the repo
 
 ```sh
