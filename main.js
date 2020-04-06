@@ -16,10 +16,18 @@ const outputPath = isDev
   ? path.join(__dirname, 'tmp')
   : path.join(app.getPath('userData'), 'tmp')
 
-// TODO: Empty out this directory on app start.
-// If the app is closed while downloading a file, the file is not removed
+// Create tmp directory if it doesn't exist
 if (!fs.existsSync(outputPath)) {
   fs.mkdirSync(outputPath)
+}
+
+// Empty out this directory on app start.
+// If the app is closed while downloading a file, the file is not removed
+// ? How to do this before close
+const files = fs.readdirSync(outputPath)
+
+for (let file of files) {
+  removeFile(path.join(outputPath, file))
 }
 
 const downloader = new Downloader({
