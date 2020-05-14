@@ -26,7 +26,13 @@ class Downloader extends EventEmitter {
   =============================================== */
 
   validateURL = url => {
-    const isValid = ytdl.validateURL(url)
+    let isValid
+
+    try {
+      isValid = ytdl.validateURL(url)
+    } catch (error) {
+      return this.handleFinish()
+    }
 
     // Throw error if the video URL is invalid
     if (!isValid) {
@@ -54,12 +60,12 @@ class Downloader extends EventEmitter {
     const videoInfo = await ytdl.getBasicInfo(url)
 
     // FIXME: Once threw an error trying to read player_response. Can't replicate error.
-    const videoTitle = sanitize(videoInfo.player_response.videoDetails.title)
+    const videoTitle = sanitize(videoInfo?.player_response?.videoDetails.title)
 
     // TODO: Refactor this to return a promise
     return {
       videoTitle,
-      path: `${this._outputPath}/${videoTitle}.${extension}`
+      path: `${this._outputPath}/${videoTitle}.${extension}`,
     }
   }
 
@@ -101,7 +107,7 @@ class Downloader extends EventEmitter {
       this.emit('finish', {
         extension,
         file: fileData.path,
-        videoTitle: fileData.videoTitle
+        videoTitle: fileData.videoTitle,
       })
       this.removeAllListeners()
     }, this._throttleValue)
@@ -117,6 +123,7 @@ class Downloader extends EventEmitter {
   =============================================== */
 
   initDownload = async ({ downloadFormat, url }) => {
+    console.log({ url })
     if (!this.validateURL(url)) return
 
     let fileData
@@ -145,7 +152,7 @@ class Downloader extends EventEmitter {
   downloadMP3 = ({ fileData, url }) => {
     // TODO: Add download quality options [normal, high]
     const stream = ytdl(url, {
-      quality: 'highestaudio'
+      quality: 'highestaudio',
     })
 
     stream.on('progress', throttle(this._throttleValue, this.handleProgress))
@@ -173,7 +180,7 @@ class Downloader extends EventEmitter {
     // https://github.com/fent/node-ytdl-core/blob/master/example/ffmpeg.js
 
     ytdl(url, {
-      quality: 'highest'
+      quality: 'highest',
     })
       .on('error', this.handleError)
       .on('progress', throttle(this._throttleValue, this.handleProgress))

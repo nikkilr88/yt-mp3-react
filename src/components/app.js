@@ -28,7 +28,7 @@ const App = () => {
   const startDownload = e => {
     e.preventDefault()
 
-    if (url !== '') {
+    if (url.trim()) {
       ipcRenderer.send('download', { url, format })
       buttonRef.current.disabled = true
     }
@@ -39,7 +39,7 @@ const App = () => {
 
     const menuItem = new MenuItem({
       label: 'Paste URL',
-      role: 'paste'
+      role: 'paste',
     })
 
     menu.append(menuItem)

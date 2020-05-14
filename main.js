@@ -89,17 +89,17 @@ ipcMain.on('download', async (event, { url, format }) => {
   downloader.initDownload({ downloadFormat: format, url })
 
   // Catch and handle any errors that come back from the downloader
-  downloader.on('error', (error) => {
+  downloader.on('error', error => {
     event.reply('download:error', error)
   })
 
   // Get download progress
-  downloader.on('progress', (percentage) => {
+  downloader.on('progress', percentage => {
     event.reply('download:progress', percentage)
   })
 
   // Handle data once download is finished
-  downloader.on('finish', async (data) => {
+  downloader.on('finish', async data => {
     event.reply('download:success')
 
     // Open save dialog and let user name file and choose where to save it
@@ -107,7 +107,7 @@ ipcMain.on('download', async (event, { url, format }) => {
       defaultPath: data.videoTitle,
       filters: [
         {
-          name: `${data.extension.toUpperCase()} File (.${data.extension})`,
+          name: `${data.extension.toUpperCase()}`,
           extensions: [data.extension],
         },
       ],
@@ -122,7 +122,7 @@ ipcMain.on('download', async (event, { url, format }) => {
     const tmpFile = fs.readFileSync(data.file)
 
     // Save the file to the path the user chose from the save dialog
-    fs.writeFile(savePath.filePath, tmpFile, (error) => {
+    fs.writeFile(savePath.filePath, tmpFile, error => {
       if (error) {
         console.log(error)
       }
