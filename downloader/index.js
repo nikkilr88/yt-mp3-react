@@ -31,7 +31,7 @@ class Downloader extends EventEmitter {
     try {
       isValid = ytdl.validateURL(url)
     } catch (error) {
-      return this.handleFinish()
+      return this.handleError(error)
     }
 
     // Throw error if the video URL is invalid
@@ -57,7 +57,13 @@ class Downloader extends EventEmitter {
   =============================================== */
 
   generateFileData = async ({ extension, url }) => {
-    const videoInfo = await ytdl.getBasicInfo(url)
+    let videoInfo
+
+    try {
+      videoInfo = await ytdl.getBasicInfo(url)
+    } catch (error) {
+      this.handleError('Oops! Something went wrong.')
+    }
 
     // FIXME: Once threw an error trying to read player_response. Can't replicate error.
     const videoTitle = sanitize(videoInfo?.player_response?.videoDetails.title)
@@ -123,17 +129,9 @@ class Downloader extends EventEmitter {
   =============================================== */
 
   initDownload = async ({ downloadFormat, url }) => {
-    console.log({ url })
     if (!this.validateURL(url)) return
 
-    let fileData
-
-    try {
-      fileData = await this.generateFileData({ extension: 'mp3', url })
-    } catch (error) {
-      // console.log(error)
-      return this.handleError()
-    }
+    const fileData = await this.generateFileData({ extension: 'mp3', url })
 
     if (downloadFormat === 'mp3') {
       this.downloadMP3({ fileData, url })

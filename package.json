@@ -38,8 +38,7 @@
     "remote": "^0.2.6",
     "sanitize-filename": "^1.6.3",
     "throttle-debounce": "^2.1.0",
-    "youtube-mp3-downloader": "^0.6.5",
-    "ytdl-core": "^2.0.0"
+    "ytdl-core": "2.1.5"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
