@@ -148,7 +148,7 @@ class Downloader extends EventEmitter {
   =============================================== */
 
   downloadMP3 = ({ fileData, url }) => {
-    // TODO: Add download quality options [normal, high]
+    // ?: Add download quality options [normal, high]
     const stream = ytdl(url, {
       quality: 'highestaudio',
     })
@@ -174,7 +174,7 @@ class Downloader extends EventEmitter {
   =============================================== */
 
   downloadMP4 = ({ fileData, url }) => {
-    // TODO: Fix mp4 video quality
+    // ?: Add mp4 video quality options
     // https://github.com/fent/node-ytdl-core/blob/master/example/ffmpeg.js
 
     ytdl(url, {
